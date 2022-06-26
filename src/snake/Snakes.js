@@ -105,7 +105,7 @@ export function Snakes() {
 
     const run = () => {
 
-        if (new Date().getTime() - moveTime.current > 1000) {
+        if (new Date().getTime() - moveTime.current > 300) {
             moveTime.current = new Date().getTime();
             snake.current.move(ctxRef);
 
