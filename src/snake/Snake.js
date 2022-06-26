@@ -7,7 +7,7 @@ export class Snake {
     }
 
     set direction(value) {
-        this._direction = value;
+        this.nextDirection = value;
     }
 
     body = []
@@ -17,6 +17,7 @@ export class Snake {
         this.body[0] = new Pos(x, y);
         this.head = this.body[0];
         this._direction = direction;
+        this.nextDirection = direction;
         this.speed = 1;
     }
 
@@ -33,6 +34,7 @@ export class Snake {
     }
 
     move() {
+        this._direction = this.nextDirection;
         if (this._direction === DIRECTION.UP) {
             this.head.move(this.head.x, this.head.y - 1);
         } else if (this._direction === DIRECTION.RIGHT) {

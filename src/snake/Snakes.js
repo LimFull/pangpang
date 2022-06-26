@@ -37,10 +37,36 @@ const ArrowArea = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
 `
 
-const ArrowContainer = styled.div`
-  position: absolute;
+const UpArrowContainer = styled.div`
+  display: flex;
+  flex: 1;
+  align-items: flex-end;
+
+  button {
+    margin: 0.5vw;
+  }
+`
+
+const HorizonArrowContainer = styled.div`
+  display: flex;
+
+  align-items: center;
+
+  button {
+    margin: 0 8vw 0 8vw;
+  }
+`
+const DownArrowContainer = styled.div`
+  display: flex;
+  flex: 1;
+  align-items: flex-start;
+
+  button {
+    margin: 0.5vw;
+  }
 `
 
 export function Snakes() {
@@ -104,30 +130,29 @@ export function Snakes() {
         }}></canvas>
         <ButtonArea style={{position: "relative"}}>
             <ArrowArea>
-                <ArrowContainer>
+                <UpArrowContainer>
                     <button onClick={() => {
                         handleDirection(DIRECTION.UP)
                     }
-                    } style={{bottom: '15vw', width: '15vw', height: '15vw'}}></button>
-                </ArrowContainer>
-                <ArrowContainer>
-                    <button onClick={() => {
-                        handleDirection(DIRECTION.RIGHT)
-                    }
-                    } style={{left: '15vw', width: '15vw', height: '15vw'}}></button>
-                </ArrowContainer>
-                <ArrowContainer>
+                    } style={{width: '15vw', height: '15vw'}}></button>
+                </UpArrowContainer>
+                <HorizonArrowContainer>
                     <button onClick={() => {
                         handleDirection(DIRECTION.LEFT)
                     }
-                    } style={{right: '15vw', width: '15vw', height: '15vw'}}></button>
-                </ArrowContainer>
-                <ArrowContainer>
+                    } style={{width: '15vw', height: '15vw'}}></button>
+
+                    <button onClick={() => {
+                        handleDirection(DIRECTION.RIGHT)
+                    }
+                    } style={{width: '15vw', height: '15vw'}}></button>
+                </HorizonArrowContainer>
+                <DownArrowContainer>
                     <button onClick={() => {
                         handleDirection(DIRECTION.DOWN)
                     }
-                    } style={{top: '15vw', width: '15vw', height: '15vw'}}></button>
-                </ArrowContainer>
+                    } style={{width: '15vw', height: '15vw'}}></button>
+                </DownArrowContainer>
             </ArrowArea>
         </ButtonArea>
     </Container>
