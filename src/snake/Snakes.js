@@ -135,7 +135,7 @@ export function Snakes() {
     }, [])
 
     return <Container ref={containerRef}>
-        <canvas ref={canvasRef} width={'200'} height={'240'} style={{
+        <canvas ref={canvasRef} width={'400'} height={'480'} style={{
             background: 'rgb(255,255,255)',
 
         }}></canvas>

@@ -40,8 +40,8 @@ export class Pos {
         }
 
         ctxRef.current.fillStyle = color;
-        ctxRef.current.clearRect(this.pastX * 4, this.pastY * 4, 4, 4);
-        ctxRef.current.fillRect(this.x * 4, this.y * 4, 4, 4);
+        ctxRef.current.clearRect(this.pastX * 8, this.pastY * 8, 8, 8);
+        ctxRef.current.fillRect(this.x * 8, this.y * 8, 8, 8);
 
         if (this.child) {
             this.child.draw(ctxRef);
