@@ -2,6 +2,7 @@ import React, {useEffect, useRef} from "react";
 import styled from "styled-components";
 import {DIRECTION} from "./Constants";
 import {Snake} from "./Snake";
+import Apple from "./Apple";
 
 const Container = styled.div`
   display: flex;
@@ -75,6 +76,7 @@ export function Snakes() {
     const ctxRef = useRef();
     const snake = useRef();
     const moveTime = useRef(new Date().getTime());
+    const appleRef = useRef(new Apple(35, 30))
 
     const _setPageSize = () => {
         containerRef.current.style.height = window.innerHeight + "px"
@@ -96,17 +98,26 @@ export function Snakes() {
         ctxRef.current = canvasRef.current.getContext('2d');
         if (ctxRef.current == null) return;
         ctxRef.current.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-        snake.current = new Snake(30, 30, DIRECTION.RIGHT);
+        snake.current = new Snake(30, 30, DIRECTION.RIGHT, 'rgb(0,0,255)');
 
         moveTime.current = new Date().getTime();
     }
 
     const run = () => {
-        snake.current.draw(ctxRef);
+
         if (new Date().getTime() - moveTime.current > 1000) {
             moveTime.current = new Date().getTime();
             snake.current.move(ctxRef);
+
+            if (snake.current.head.isEqual(appleRef.current)) {
+                console.log("뱀 자람");
+                snake.current.growUp();
+                appleRef.current.reset(Math.floor(Math.random() * 50), Math.floor(Math.random() * 60));
+            }
         }
+        snake.current.draw(ctxRef);
+        appleRef.current.draw(ctxRef);
+
         requestAnimationFrame(run);
     }
 

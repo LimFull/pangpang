@@ -34,12 +34,15 @@ export class Pos {
         }
     }
 
-    draw(ctxRef) {
+    draw(ctxRef, color) {
         if (!ctxRef) {
             return;
         }
-        ctxRef.current.fillRect(this.x * 2, this.y * 2, 2, 2);
+        
+        ctxRef.current.fillStyle = color;
         ctxRef.current.clearRect(this.pastX * 2, this.pastY * 2, 2, 2);
+        ctxRef.current.fillRect(this.x * 2, this.y * 2, 2, 2);
+
         if (this.child) {
             this.child.draw(ctxRef);
         }

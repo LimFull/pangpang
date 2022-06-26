@@ -13,12 +13,13 @@ export class Snake {
     body = []
 
 
-    constructor(x, y, direction) {
+    constructor(x, y, direction, color) {
         this.body[0] = new Pos(x, y);
         this.head = this.body[0];
         this._direction = direction;
         this.nextDirection = direction;
         this.speed = 1;
+        this.color = color;
     }
 
     turn(direction) {
@@ -29,9 +30,6 @@ export class Snake {
         return this.body[0];
     }
 
-    inRect() {
-        return (this.head.x % 2 || this.head.y % 2)
-    }
 
     move() {
         this._direction = this.nextDirection;
@@ -51,7 +49,12 @@ export class Snake {
             return;
         }
         ctxRef.current.fillStyle = 'rgb(0,0,255)'
-        this.head.draw(ctxRef);
+        this.head.draw(ctxRef, this.color);
+    }
+
+    growUp() {
+        const tail = this.body[this.body.length - 1];
+        this.body.push(new Pos(tail.x, tail.y, tail));
     }
 }
 
