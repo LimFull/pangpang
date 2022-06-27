@@ -4,19 +4,6 @@ import {DIRECTION} from "./Constants";
 import {Snake} from "./Snake";
 import Apple from "./Apple";
 
-const Container = styled.div`
-  display: flex;
-  flex: 1;
-  width: 100vw;
-  height: 10vh;
-  background-color: blue;
-  position: fixed;
-  //overscroll-behavior: contain;
-  //touch-action: none;
-  flex-direction: column;
-  overflow: scroll;
-`
-
 const ButtonArea = styled.div`
   display: flex;
   width: 100%;
@@ -28,6 +15,11 @@ const ButtonArea = styled.div`
   button {
     position: relative;
   }
+`
+
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
 `
 
 const ArrowArea = styled.div`
