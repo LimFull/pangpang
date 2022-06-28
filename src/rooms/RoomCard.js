@@ -13,8 +13,10 @@ const CardContainer = styled.div`
   align-items: center;
   justify-content: space-between;
   padding: 12px;
-  margin: 16px;
+  margin: 6px;
   flex-direction: column;
+  border: solid 2px rgba(0, 0, 0, 0.14);
+  box-shadow: 3px 2px 3px 1px rgba(0, 0, 0, 0.33);
 
 `
 
