@@ -24,36 +24,35 @@ const StyledPagination = styled(Pagination)`
 `
 
 export function Rooms() {
-  const [rooms, setRooms] = useState([{id: 1, title: 'ABCD', member: 1}, {id: 2, title: '가나다라마바사', member: 1}, {
-    id: 3,
-    title: 'ABCD',
-    member: 1
-  }, {id: 4, title: 'ABCD', member: 1}, {id: 5, title: 'ABCD', member: 1}, {id: 6, title: 'ABCD', member: 1}]);
-  const [page, setPage] = useState(1);
-  const [showModal, setShowModal] = useState(false);
-  const pageIndex = useMemo(() => (page - 1) * 4, [page]);
+    const [rooms, setRooms] = useState([{id: 1, title: 'ABCD', member: 1}, {id: 2, title: '가나다라마바사', member: 1}, {
+        id: 3,
+        title: 'ABCD',
+        member: 1
+    }, {id: 4, title: 'ABCD', member: 1}, {id: 5, title: 'ABCD', member: 1}, {id: 6, title: 'ABCD', member: 1}]);
+    const [page, setPage] = useState(1);
+    const [showModal, setShowModal] = useState(false);
+    const pageIndex = useMemo(() => (page - 1) * 4, [page]);
 
-  const handleShowModal = useCallback(() => {
-    setShowModal(true);
-  }, []);
+    const handleShowModal = useCallback(() => {
+        setShowModal(true);
+    }, []);
 
-  const handleCancelModal = useCallback(() => {
-    setShowModal(false);
-  }, [])
+    const handleCancelModal = useCallback(() => {
+        setShowModal(false);
+    }, [])
 
 
-  console.log(rooms.slice((page - 1) * 4, 4), page)
-  return <Container>
-    <CreateButton type={'primary'} onClick={handleShowModal}>방 만들기</CreateButton>
-    {
-      rooms.slice(pageIndex, pageIndex + 4).map((v) => <RoomCard member={v.member} roomId={v.id}
-                                                                 roomTitle={v.title}/>)
-    }
-    <StyledPagination pageSize={4} total={(rooms.length)} onChange={(page, pageSize) => {
-      setPage(page)
-    }}></StyledPagination>
-    <CreateRoomModal visible={showModal} onCancel={handleCancelModal}/>
-  </Container>
+    return <Container>
+        <CreateButton type={'primary'} onClick={handleShowModal}>방 만들기</CreateButton>
+        {
+            rooms.slice(pageIndex, pageIndex + 4).map((v) => <RoomCard member={v.member} roomId={v.id}
+                                                                       roomTitle={v.title}/>)
+        }
+        <StyledPagination pageSize={4} total={(rooms.length)} onChange={(page, pageSize) => {
+            setPage(page)
+        }}></StyledPagination>
+        <CreateRoomModal visible={showModal} onCancel={handleCancelModal}/>
+    </Container>
 }
 
 export default Rooms

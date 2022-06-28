@@ -41,16 +41,15 @@ const JoinButton = styled(Button)`
 
 
 export function RoomCard({roomId = 0, roomTitle = 'Default', member = 0}) {
-  console.log("render")
-  return <CardContainer>
-    <InfoContainer>
-      <Text style={{color: '#5e5e5e'}} level={5}>{roomId}</Text>
-      <Text style={{color: '#5e5e5e'}}
-            level={5}>{member}/4</Text>
-    </InfoContainer>
-    <InfoContainer style={{paddingBottom: 8, paddingTop: 10}}>
-      <Title level={3}>{roomTitle}</Title>
-      <JoinButton>입장</JoinButton>
-    </InfoContainer>
-  </CardContainer>
+    return <CardContainer>
+        <InfoContainer>
+            <Text style={{color: '#5e5e5e'}} level={5}>{roomId}</Text>
+            <Text style={{color: '#5e5e5e'}}
+                  level={5}>{member}/4</Text>
+        </InfoContainer>
+        <InfoContainer style={{paddingBottom: 8, paddingTop: 10}}>
+            <Title level={3}>{roomTitle}</Title>
+            <JoinButton>입장</JoinButton>
+        </InfoContainer>
+    </CardContainer>
 }

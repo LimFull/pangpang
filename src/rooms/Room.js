@@ -1,5 +1,8 @@
 import styled from "styled-components";
 import UserCard from "./UserCard";
+import {Button, Input} from "antd";
+import Chat from "./Chat";
+import {useCallback, useState} from "react";
 
 const Container = styled.div`
   display: flex;
@@ -20,18 +23,42 @@ const CardContainer = styled.div`
   padding-top: 12px;
   border: solid 1px #d9d9d9;
   background: rgba(189, 187, 187, 0.3);
+  margin-top: 10px;
+'
+`
 
+const ButtonContainer = styled.div`
+  width: 95vw;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+
+  .ant-btn {
+    width: 80px;
+  }
 `
 
 export function Room() {
-  return <Container>
-    <CardContainer>
-      <UserCard/>
-      <UserCard/>
-      <UserCard/>
-      <UserCard/>
-    </CardContainer>
-  </Container>
+    const [isReady, setIsReady] = useState(false);
+
+    const handleReady = useCallback(() => {
+        setIsReady((prev) => !prev)
+    })
+
+    return <Container>
+        <CardContainer>
+            <UserCard/>
+            <UserCard/>
+            <UserCard/>
+            <UserCard/>
+        </CardContainer>
+        <ButtonContainer>
+            <Button>Exit</Button>
+            <Button type={isReady ? 'default' : 'primary'} onClick={handleReady}>{isReady ? "Cancel" : "Ready"}</Button>
+        </ButtonContainer>
+        <Chat/>
+    </Container>
 
 }
 
