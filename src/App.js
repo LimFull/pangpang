@@ -1,25 +1,25 @@
 import './App.css';
 import Snakes from "./snake/Snakes";
+import Rooms from "./rooms/Rooms";
+import Room from "./rooms/Room";
+import PageWrapper from "./page/PageWrapper";
 
 import {Routes} from "react-router";
 import {BrowserRouter, Route} from "react-router-dom";
-import {Rooms} from "./rooms/Rooms";
-import {PageWrapper} from "./page/PageWrapper";
-
 
 function App() {
-    return (
-        <BrowserRouter>
-            <PageWrapper>
+  return (
+    <BrowserRouter>
+      <PageWrapper>
+        <Routes>
+          <Route path={'/'} element={<Rooms/>}/>
+          <Route path={'/room'} element={<Room/>}/>
+          <Route path={'/snakes'} element={<Snakes/>}/>
+        </Routes>
+      </PageWrapper>
+    </BrowserRouter>
 
-                <Routes>
-                    <Route path={'/'} element={<Rooms/>}/>
-                    <Route path={'/snakes'} element={<Snakes/>}/>
-                </Routes>
-            </PageWrapper>
-        </BrowserRouter>
-
-    );
+  );
 }
 
 export default App;

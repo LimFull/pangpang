@@ -84,13 +84,6 @@ export function Snakes() {
   }
 
   const init = () => {
-    const map = [];
-    for (let i = 0; i < 60; i++) {
-      if (!map[i]) map[i] = []
-      for (let j = 0; j < 50; j++) {
-        map[i][j] = i % 2 === 0 ? (0) : 1;
-      }
-    }
     ctxRef.current = canvasRef.current.getContext('2d');
     if (ctxRef.current == null) return;
     clearCanvas();
@@ -149,7 +142,7 @@ export function Snakes() {
             handleDirection(DIRECTION.LEFT)
           }
           } style={{width: '15vw', height: '15vw'}}></button>
-
+          움
           <button onClick={() => {
             handleDirection(DIRECTION.RIGHT)
           }

@@ -2,7 +2,7 @@ import styled from "styled-components";
 import {Button, Pagination} from "antd";
 import {RoomCard} from "./RoomCard";
 import CreateRoomModal from "./CreateRoomModal";
-import {useMemo, useState} from "react";
+import {useCallback, useMemo, useState} from "react";
 
 const Container = styled.div`
   display: flex;
@@ -30,11 +30,21 @@ export function Rooms() {
     member: 1
   }, {id: 4, title: 'ABCD', member: 1}, {id: 5, title: 'ABCD', member: 1}, {id: 6, title: 'ABCD', member: 1}]);
   const [page, setPage] = useState(1);
+  const [showModal, setShowModal] = useState(false);
   const pageIndex = useMemo(() => (page - 1) * 4, [page]);
+
+  const handleShowModal = useCallback(() => {
+    setShowModal(true);
+  }, []);
+
+  const handleCancelModal = useCallback(() => {
+    setShowModal(false);
+  }, [])
+
 
   console.log(rooms.slice((page - 1) * 4, 4), page)
   return <Container>
-    <CreateButton type={'primary'}>방 만들기</CreateButton>
+    <CreateButton type={'primary'} onClick={handleShowModal}>방 만들기</CreateButton>
     {
       rooms.slice(pageIndex, pageIndex + 4).map((v) => <RoomCard member={v.member} roomId={v.id}
                                                                  roomTitle={v.title}/>)
@@ -42,6 +52,8 @@ export function Rooms() {
     <StyledPagination pageSize={4} total={(rooms.length)} onChange={(page, pageSize) => {
       setPage(page)
     }}></StyledPagination>
-    <CreateRoomModal visible={false}/>
+    <CreateRoomModal visible={showModal} onCancel={handleCancelModal}/>
   </Container>
 }
+
+export default Rooms

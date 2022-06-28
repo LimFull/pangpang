@@ -12,7 +12,9 @@ const Container = styled.div`
 `
 
 export function PageWrapper({children}) {
-    return <Container>
-        {children}
-    </Container>
+  return <Container>
+    {children}
+  </Container>
 }
+
+export default PageWrapper
