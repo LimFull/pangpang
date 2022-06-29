@@ -3,6 +3,7 @@ import {Button, Pagination} from "antd";
 import {RoomCard} from "./RoomCard";
 import CreateRoomModal from "./CreateRoomModal";
 import {useCallback, useMemo, useState} from "react";
+import {api} from "../apis";
 
 const Container = styled.div`
   display: flex;
@@ -33,8 +34,9 @@ export function Rooms() {
     const [showModal, setShowModal] = useState(false);
     const pageIndex = useMemo(() => (page - 1) * 4, [page]);
 
-    const handleShowModal = useCallback(() => {
-        setShowModal(true);
+    const handleShowModal = useCallback(async () => {
+        await api.base.get('/').then((r)=>console.log("response", r)).catch(e=>console.log("error", e));
+        // setShowModal(true);
     }, []);
 
     const handleCancelModal = useCallback(() => {

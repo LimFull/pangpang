@@ -9,5 +9,6 @@ exports.mainView = function (req, res) {
 }
 
 exports.rootView = function (req, res) {
-  res.end("Hello world");
+  console.log("root");
+  res.send("Hello world");
 }
