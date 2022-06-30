@@ -5,7 +5,7 @@ export class Base {
         return (path) => {
             const instance = axios.create({
                 baseURL: `${baseUrl}${path}`,
-                withCredentials: true,
+                // withCredentials: true,
             });
 
             return instance;
