@@ -28,7 +28,12 @@ const StyledText = styled(Text)`
   font-size: 20px;
 `
 
-export function UserCard({color = 'blue', name = 'default_name'}) {
+interface UserCardProps {
+  color:string,
+  name: string,
+}
+
+export function UserCard({color = 'blue', name = 'default_name'}:UserCardProps) {
   return <Container>
     <ColorBox style={{backgroundColor: color}}/>
     <StyledText>{name}</StyledText>
