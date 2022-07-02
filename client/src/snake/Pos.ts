@@ -1,5 +1,13 @@
 export class Pos {
-  constructor(x, y, parent) {
+  public x: number;
+  public y: number;
+  private pastX: number;
+  private pastY: number;
+  private parent;
+  private child;
+
+
+  constructor(x:number, y:number, parent?:Pos) {
     this.x = x;
     this.y = y;
     this.pastX = -1;
