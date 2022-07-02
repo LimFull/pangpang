@@ -29,16 +29,15 @@ const StyledText = styled(Text)`
 `
 
 interface UserCardProps {
-  color:string,
-  name: string,
+    color: string,
+    name: string,
 }
 
-export function UserCard({color = 'blue', name = 'default_name'}:UserCardProps) {
-  return <Container>
-    <ColorBox style={{backgroundColor: color}}/>
-    <StyledText>{name}</StyledText>
-  </Container>
-
+export function UserCard({color = 'blue', name = 'default_name'}: UserCardProps) {
+    return <Container>
+        <ColorBox style={{backgroundColor: color}}/>
+        <StyledText>{name}</StyledText>
+    </Container>
 }
 
 export default UserCard;

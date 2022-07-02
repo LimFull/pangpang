@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import UserCard from "./UserCard";
-import {Button, Input} from "antd";
+import {Button} from "antd";
 import Chat from "./Chat";
 import {useCallback, useState} from "react";
 
@@ -47,10 +47,10 @@ export function Room() {
 
     return <Container>
         <CardContainer>
-            <UserCard/>
-            <UserCard/>
-            <UserCard/>
-            <UserCard/>
+            <UserCard color={'blue'} name={'default_name'}/>
+            <UserCard color={'blue'} name={'default_name'}/>
+            <UserCard color={'blue'} name={'default_name'}/>
+            <UserCard color={'blue'} name={'default_name'}/>
         </CardContainer>
         <ButtonContainer>
             <Button>Exit</Button>
