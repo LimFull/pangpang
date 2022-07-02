@@ -24,18 +24,32 @@ const StyledPagination = styled(Pagination)`
   margin-top: 20px
 `
 
+
+const MOCK_DATA: RoomType[] = [{id: 1, title: 'ABCD', member: 1}, {
+    id: 2,
+    title: '가나다라마바사',
+    member: 1
+}, {
+    id: 3,
+    title: 'ABCD',
+    member: 1
+}, {id: 4, title: 'ABCD', member: 1}, {id: 5, title: 'ABCD', member: 1}, {id: 6, title: 'ABCD', member: 1}]
+
+
+interface RoomType {
+    id: number;
+    title: string;
+    member: number;
+}
+
 export function Rooms() {
-    const [rooms, setRooms] = useState([{id: 1, title: 'ABCD', member: 1}, {id: 2, title: '가나다라마바사', member: 1}, {
-        id: 3,
-        title: 'ABCD',
-        member: 1
-    }, {id: 4, title: 'ABCD', member: 1}, {id: 5, title: 'ABCD', member: 1}, {id: 6, title: 'ABCD', member: 1}]);
-    const [page, setPage] = useState(1);
-    const [showModal, setShowModal] = useState(false);
-    const pageIndex = useMemo(() => (page - 1) * 4, [page]);
+    const [rooms, setRooms] = useState<RoomType[]>(MOCK_DATA);
+    const [page, setPage] = useState<number>(1);
+    const [showModal, setShowModal] = useState<boolean>(false);
+    const pageIndex = useMemo<number>(() => (page - 1) * 4, [page]);
 
     const handleShowModal = useCallback(async () => {
-        await api.base.get('/').then((r)=>console.log("response", r)).catch(e=>console.log("error", e));
+        await api.base.get('/').then((r) => console.log("response", r)).catch(e => console.log("error", e));
         // setShowModal(true);
     }, []);
 
