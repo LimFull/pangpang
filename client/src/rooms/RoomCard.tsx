@@ -3,7 +3,6 @@ import {Button, Typography} from "antd";
 
 const {Title, Text} = Typography;
 
-
 const CardContainer = styled.div`
   display: flex;
   width: 360px;
@@ -17,7 +16,6 @@ const CardContainer = styled.div`
   flex-direction: column;
   border: solid 2px rgba(0, 0, 0, 0.14);
   box-shadow: 3px 2px 3px 1px rgba(0, 0, 0, 0.33);
-
 `
 
 const InfoContainer = styled.div`
@@ -35,19 +33,22 @@ const InfoContainer = styled.div`
   }
 `
 
-
 const JoinButton = styled(Button)`
   width: 80px;
   height: 40px;
 `
 
+interface Props {
+    roomId: number
+    roomTitle: string
+    member: number
+}
 
-export function RoomCard({roomId = 0, roomTitle = 'Default', member = 0}) {
+export function RoomCard({roomId = 0, roomTitle = 'Default', member = 0}: Props) {
     return <CardContainer>
         <InfoContainer>
-            <Text style={{color: '#5e5e5e'}} level={5}>{roomId}</Text>
-            <Text style={{color: '#5e5e5e'}}
-                  level={5}>{member}/4</Text>
+            <Text style={{color: '#5e5e5e'}}>{roomId}</Text>
+            <Text style={{color: '#5e5e5e'}}>{member}/4</Text>
         </InfoContainer>
         <InfoContainer style={{paddingBottom: 8, paddingTop: 10}}>
             <Title level={3}>{roomTitle}</Title>
