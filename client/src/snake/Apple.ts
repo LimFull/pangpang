@@ -1,6 +1,7 @@
 import Pos from "./Pos";
 
 export class Apple {
+    private pos: Pos;
 
     get x() {
         return this.pos.x;
@@ -12,7 +13,6 @@ export class Apple {
 
     constructor(x, y) {
         this.pos = new Pos(x, y)
-
     }
 
     draw(ctxRef) {
@@ -28,8 +28,6 @@ export class Apple {
         this.pos.x = x;
         this.pos.y = y;
     }
-
-
 }
 
 export default Apple;
