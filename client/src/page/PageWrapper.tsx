@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import {ReactNode} from "react";
 
 const Container = styled.div`
   display: flex;
@@ -11,7 +12,11 @@ const Container = styled.div`
   overflow: scroll;
 `
 
-export function PageWrapper({children}) {
+interface PageWrapper {
+  children: ReactNode;
+}
+
+export function PageWrapper({children}: PageWrapper) {
   return <Container>
     {children}
   </Container>
