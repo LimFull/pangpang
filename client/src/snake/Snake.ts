@@ -2,6 +2,12 @@ import {DIRECTION} from "./Constants";
 import Pos from "./Pos";
 
 export class Snake {
+    private _direction: number;
+    public nextDirection: number;
+    private speed: number;
+    private readonly color: string;
+    private head: Pos;
+
     get direction() {
         return this._direction;
     }
@@ -10,10 +16,9 @@ export class Snake {
         this.nextDirection = value;
     }
 
-    body = []
+    body: Pos[] = []
 
-
-    constructor(x, y, direction, color) {
+    constructor(x: number, y: number, direction: number, color: string) {
         this.body[0] = new Pos(x, y);
         this.head = this.body[0];
         this._direction = direction;
