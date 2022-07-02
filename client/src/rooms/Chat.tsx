@@ -36,8 +36,8 @@ const StyledInput = styled(Input)`
 
 export function Chat() {
     const [inputValue, setInputValue] = useState('');
-    const container = useRef(null);
-    const messageBox = useRef(null);
+    const container = useRef<HTMLDivElement>(null);
+    const messageBox = useRef<HTMLDivElement>(null);
     const [messages, setMessages] = useState([{
         name: '이름',
         message: 'message',
