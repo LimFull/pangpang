@@ -6,7 +6,7 @@ export class Snake {
     public nextDirection: number;
     private speed: number;
     private readonly color: string;
-    private head: Pos;
+    public head: Pos;
 
     get direction() {
         return this._direction;

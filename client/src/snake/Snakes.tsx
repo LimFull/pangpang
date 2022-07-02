@@ -63,28 +63,35 @@ const DownArrowContainer = styled.div`
 `
 
 export function Snakes() {
-  const canvasRef = useRef(null);
-  const containerRef = useRef(null);
-  const ctxRef = useRef();
-  const snake = useRef();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const ctxRef = useRef<CanvasRenderingContext2D>();
+  const snake = useRef<Snake>();
   const moveTime = useRef(new Date().getTime());
   const appleRef = useRef(new Apple(35, 30))
 
   const _setPageSize = () => {
+    if (!containerRef.current) return
+
     containerRef.current.style.height = window.innerHeight + "px"
     window.addEventListener("resize",
       () => {
         console.log("resize")
-        containerRef.current.style.height = window.innerHeight
+        if (!containerRef.current) return
+        containerRef.current.style.height = `${window.innerHeight}px`
       })
   }
 
   const clearCanvas = () => {
+    if (!ctxRef.current || !canvasRef.current) return
     ctxRef.current.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
   }
 
   const init = () => {
-    ctxRef.current = canvasRef.current.getContext('2d');
+    if (!canvasRef.current) return
+    let context: CanvasRenderingContext2D | null = canvasRef.current.getContext('2d');
+    if (!context) return
+    ctxRef.current = context;
     if (ctxRef.current == null) return;
     clearCanvas();
     snake.current = new Snake(30, 30, DIRECTION.RIGHT, 'rgb(0,0,255)');
@@ -97,21 +104,22 @@ export function Snakes() {
 
     if (new Date().getTime() - moveTime.current > 300) {
       moveTime.current = new Date().getTime();
-      snake.current.move(ctxRef);
+      snake.current?.move();
 
-      if (snake.current.head.isEqual(appleRef.current)) {
+      if (snake.current?.head?.isEqual(appleRef.current)) {
         console.log("뱀 자람");
         snake.current.growUp();
         appleRef.current.reset(Math.floor(Math.random() * 50), Math.floor(Math.random() * 60));
       }
     }
-    snake.current.draw(ctxRef);
+    snake.current?.draw(ctxRef);
     appleRef.current.draw(ctxRef);
 
     requestAnimationFrame(run);
   }
 
   const handleDirection = (direction) => {
+    if (!snake.current) return
     const toHandle = (snake.current.direction + direction) % 2;
     if (toHandle) {
       snake.current.direction = direction;
