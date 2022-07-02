@@ -40,11 +40,10 @@ const ButtonContainer = styled.div`
 `
 
 export function Room() {
-    const [isReady, setIsReady] = useState(false);
-
+    const [isReady, setIsReady] = useState<boolean>(false);
     const handleReady = useCallback(() => {
         setIsReady((prev) => !prev)
-    })
+    },[])
 
     return <Container>
         <CardContainer>
