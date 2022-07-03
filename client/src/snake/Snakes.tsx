@@ -3,6 +3,7 @@ import styled from "styled-components";
 import {DIRECTION} from "./Constants";
 import {Snake} from "./Snake";
 import Apple from "./Apple";
+import {CountDown} from "../page/CountDown";
 
 const ButtonArea = styled.div`
   display: flex;
@@ -62,12 +63,24 @@ const DownArrowContainer = styled.div`
   }
 `
 
+interface Props {
+    pause: React.MutableRefObject<boolean>
+}
+
 export function Snakes() {
+    const pause = useRef(true)
+    return <CountDown values={['3', '2', '1', 'start!']} pause={pause}>
+        <SnakeGame pause={pause}/>
+    </CountDown>
+}
+
+function SnakeGame({pause}: Props) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const ctxRef = useRef<CanvasRenderingContext2D>();
     const snake = useRef<Snake>();
     const moveTime = useRef(new Date().getTime());
+    const gameTime = useRef(new Date().getTime());
     const appleRef = useRef(new Apple(35, 30))
 
     const _setPageSize = () => {
@@ -100,9 +113,18 @@ export function Snakes() {
     }
 
     const run = () => {
+        let nextGameTime = gameTime.current
+        if (!pause.current) {
+            nextGameTime = new Date().getTime()
+            gameTime.current = nextGameTime;
+        }
         clearCanvas();
+        draw(nextGameTime);
+        requestAnimationFrame(run);
+    }
 
-        if (new Date().getTime() - moveTime.current > 300) {
+    const draw = (gameTime: number) => {
+        if (gameTime - moveTime.current > 300) {
             moveTime.current = new Date().getTime();
             snake.current?.move();
 
@@ -114,10 +136,7 @@ export function Snakes() {
         }
         snake.current?.draw(ctxRef);
         appleRef.current.draw(ctxRef);
-
-        requestAnimationFrame(run);
     }
-
     const handleDirection = (direction) => {
         if (!snake.current) return
         const toHandle = (snake.current.direction + direction) % 2;
@@ -150,7 +169,10 @@ export function Snakes() {
                         handleDirection(DIRECTION.LEFT)
                     }
                     } style={{width: '15vw', height: '15vw'}}></button>
-                    움
+                    <button onClick={() => {
+                        pause.current = !pause.current
+                    }}>일시 {pause.current} 정지
+                    </button>
                     <button onClick={() => {
                         handleDirection(DIRECTION.RIGHT)
                     }
