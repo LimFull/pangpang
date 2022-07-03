@@ -43,7 +43,7 @@ export function Room() {
     const [isReady, setIsReady] = useState<boolean>(false);
     const handleReady = useCallback(() => {
         setIsReady((prev) => !prev)
-    },[])
+    }, [])
 
     return <Container>
         <CardContainer>

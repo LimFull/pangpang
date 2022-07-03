@@ -3,16 +3,16 @@ import Pos from "./Pos";
 export class Apple {
     private pos: Pos;
 
+    constructor(x, y) {
+        this.pos = new Pos(x, y)
+    }
+
     get x() {
         return this.pos.x;
     }
 
     get y() {
         return this.pos.y;
-    }
-
-    constructor(x, y) {
-        this.pos = new Pos(x, y)
     }
 
     draw(ctxRef) {

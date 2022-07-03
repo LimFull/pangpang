@@ -3,13 +3,13 @@ import {Typography} from "antd";
 const {Text} = Typography;
 
 interface MessageProps {
-    message:string,
-    name:string,
+    message: string,
+    name: string,
 }
 
 export function Message({
                             message = '', name = 'default_name'
-                        }:MessageProps) {
+                        }: MessageProps) {
 
     return <Text>{name} : {message}</Text>
 }

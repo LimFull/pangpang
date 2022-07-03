@@ -13,13 +13,13 @@ const Container = styled.div`
 `
 
 interface PageWrapper {
-  children: ReactNode;
+    children: ReactNode;
 }
 
 export function PageWrapper({children}: PageWrapper) {
-  return <Container>
-    {children}
-  </Container>
+    return <Container>
+        {children}
+    </Container>
 }
 
 export default PageWrapper
