@@ -29,9 +29,10 @@ export class SnakeGameState {
         this.objectIndexesByPos[key].add(this.objects.length - 1)
     }
 
-    computeNextState({computeBefore, computeAfter}: {
+    computeNextState({computeBefore, computeAfter, draw}: {
         computeBefore?: (value: GameObject, index: number, key: string) => void,
         computeAfter?: (value: GameObject, index: number, key: string) => void,
+        draw?: (value:GameObject[])=>void,
     } = {}): SnakeGameState {
         const nextObjects: GameObject[] = this.objects.flatMap((object, idx) => {
             const key = SnakeGameState.key(object);
@@ -45,6 +46,9 @@ export class SnakeGameState {
                 result.forEach(row => row.updateTime = this.time)
             } else {
                 result = [object]
+            }
+            if (draw) {
+                draw(result);
             }
             if (computeAfter) {
                 computeAfter(object, idx, key)

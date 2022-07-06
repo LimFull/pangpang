@@ -137,10 +137,10 @@ function draw(
     function frame() {
         context.clearRect(0, 0, 10000, 10000)
         states = states.computeNextState({
-            computeBefore: (state) => {
-                context.fillText(`${state.pos.x}, ${state.pos.y}`, state.pos.x * blockWidth, state.pos.y * blockHeight)
-                context.strokeRect(state.pos.x * blockWidth, state.pos.y * blockHeight, blockWidth, blockHeight)
-            },
+            draw:(states)=> {
+                // context.fillText(`${state.pos.x}, ${state.pos.y}`, state.pos.x * blockWidth, state.pos.y * blockHeight)
+                states.forEach((state)=>context.strokeRect(state.pos.x * blockWidth, state.pos.y * blockHeight, blockWidth, blockHeight))
+            }
         })
         requestAnimationFrame(frame);
     }
