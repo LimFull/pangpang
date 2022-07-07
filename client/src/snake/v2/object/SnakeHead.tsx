@@ -31,6 +31,11 @@ export class SnakeHead implements GameObject {
             return [this]
         }
 
+        if (impactTarget instanceof SnakeBody || impactTarget instanceof SnakeHead) {
+            this.die();
+            return [this];
+        }
+
         const prevPos = {...this.pos}
         this.move();
         this.body?.move(prevPos)
@@ -52,6 +57,7 @@ export class SnakeHead implements GameObject {
     }
 
     move() {
+
         switch (this.direction) {
             case Direction.UP: {
                 this.pos.y -= 1

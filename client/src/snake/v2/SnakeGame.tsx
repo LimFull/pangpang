@@ -138,8 +138,8 @@ function draw(
     function frame() {
         context.clearRect(0, 0, 10000, 10000)
         states = states.computeNextState({
-            draw:(states)=> {
-                states.forEach(state => context.fillText(`${state.pos.x}, ${state.pos.y}`, state.pos.x * blockWidth, state.pos.y * blockHeight))
+            draw: (states) => {
+                // states.forEach(state => context.fillText(`${state.pos.x}, ${state.pos.y}`, state.pos.x * blockWidth, state.pos.y * blockHeight))
                 states.forEach((state) => context.strokeRect(state.pos.x * blockWidth, state.pos.y * blockHeight, blockWidth, blockHeight))
             }
         })
