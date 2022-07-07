@@ -4,6 +4,7 @@ import {Direction, randomPosition} from "./object";
 import {Apple} from "./object/Apple";
 import {SnakeHead} from "./object/SnakeHead";
 import {SnakeGameState} from "./SnakeGameState";
+import {MAP_SIZE} from "../Constants";
 
 const ButtonArea = styled.div`
   display: flex;
@@ -71,7 +72,7 @@ interface Props {
 }
 
 export function SnakeGame() {
-    return <SnakeGameWithProps size={{x: 20, y: 20}}/>
+    return <SnakeGameWithProps size={{x: MAP_SIZE.WIDTH, y: MAP_SIZE.HEIGHT}}/>
 }
 
 function SnakeGameWithProps(props: Props) {
@@ -138,8 +139,8 @@ function draw(
         context.clearRect(0, 0, 10000, 10000)
         states = states.computeNextState({
             draw:(states)=> {
-                // context.fillText(`${state.pos.x}, ${state.pos.y}`, state.pos.x * blockWidth, state.pos.y * blockHeight)
-                states.forEach((state)=>context.strokeRect(state.pos.x * blockWidth, state.pos.y * blockHeight, blockWidth, blockHeight))
+                states.forEach(state => context.fillText(`${state.pos.x}, ${state.pos.y}`, state.pos.x * blockWidth, state.pos.y * blockHeight))
+                states.forEach((state) => context.strokeRect(state.pos.x * blockWidth, state.pos.y * blockHeight, blockWidth, blockHeight))
             }
         })
         requestAnimationFrame(frame);

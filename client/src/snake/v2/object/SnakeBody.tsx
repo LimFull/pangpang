@@ -4,6 +4,7 @@ export class SnakeBody implements GameObject {
     pos: Position;
     updateTime: number;
     next?: SnakeBody;
+    dead: boolean = false;
 
     constructor(pos: Position, headUpdateTime: number, next?: SnakeBody) {
         this.pos = pos;
@@ -12,10 +13,16 @@ export class SnakeBody implements GameObject {
     }
 
     needComputeNextState(gameTime: number): boolean {
+        if (this.dead) {
+            return true;
+        }
         return gameTime === this.updateTime;
     }
 
     nextState(gameTime: number, impactTarget?: GameObject): GameObject[] {
+        if (this.dead) {
+            return [];
+        }
         return [];
     }
 
@@ -24,4 +31,10 @@ export class SnakeBody implements GameObject {
         this.pos = pos;
         this.next?.move(prevPos)
     }
+
+    die() {
+        this.dead = true;
+        this.next?.die();
+    }
+
 }

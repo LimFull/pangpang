@@ -1,5 +1,6 @@
 import {Direction, GameObject, Position} from "./index";
 import {SnakeBody} from "./SnakeBody";
+import {MAP_SIZE} from "../../Constants";
 
 export class SnakeHead implements GameObject {
     pos: Position;
@@ -7,6 +8,8 @@ export class SnakeHead implements GameObject {
     direction: Direction;
     body?: SnakeBody
     lastAddedBody?: SnakeBody
+    dead: boolean = false;
+    deadBodyCount: number = 5;
 
     constructor(pos: Position, direction: Direction) {
         this.pos = pos;
@@ -15,10 +18,19 @@ export class SnakeHead implements GameObject {
 
     needComputeNextState(gameTime: number): boolean {
         const time = gameTime - this.updateTime
-        return time >= 500
+        return time >= 200
     }
 
     nextState(gameTime: number, impactTarget?: GameObject): GameObject[] {
+        if (this.dead) {
+            this.deadBodyCount -= 1;
+            if (this.deadBodyCount === 0) {
+                this.body?.die()
+                return []
+            }
+            return [this]
+        }
+
         const prevPos = {...this.pos}
         this.move();
         this.body?.move(prevPos)
@@ -27,7 +39,16 @@ export class SnakeHead implements GameObject {
             this.lastAddedBody = undefined;
             return [this, lastAddedBody]
         }
+
+        if (this.pos.x >= MAP_SIZE.WIDTH || this.pos.x < 0 || this.pos.y >= MAP_SIZE.HEIGHT || this.pos.y < 0) {
+            this.die();
+        }
+
         return [this];
+    }
+
+    die() {
+        this.dead = true;
     }
 
     move() {
