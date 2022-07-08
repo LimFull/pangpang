@@ -1,25 +1,26 @@
 import {GameObject, Position} from "./index";
+import {SnakeGameState} from "../SnakeGameState";
 
 export class SnakeBody implements GameObject {
     pos: Position;
-    updateTime: number;
+    version: number;
     next?: SnakeBody;
     dead: boolean = false;
 
-    constructor(pos: Position, headUpdateTime: number, next?: SnakeBody) {
+    constructor(pos: Position, headVersion: number, next?: SnakeBody) {
         this.pos = pos;
-        this.updateTime = headUpdateTime;
+        this.version = headVersion;
         this.next = next;
     }
 
-    needComputeNextState(gameTime: number): boolean {
+    needComputeNextState(state: SnakeGameState): boolean {
         if (this.dead) {
             return true;
         }
-        return gameTime === this.updateTime;
+        return this.version === state.version;
     }
 
-    nextState(gameTime: number, impactTarget?: GameObject): GameObject[] {
+    nextState(state: SnakeGameState, impactTarget?: GameObject): GameObject[] {
         if (this.dead) {
             return [];
         }

@@ -1,3 +1,5 @@
+import {SnakeGameState} from "../SnakeGameState";
+
 export enum Direction {
     UP,
     RIGHT,
@@ -12,11 +14,11 @@ export interface Position {
 
 export interface GameObject {
     pos: Position
-    updateTime?: number
+    version?: number
 
-    needComputeNextState(gameTime: number, impactTarget?: GameObject): boolean
+    needComputeNextState(state: SnakeGameState, impactTarget?: GameObject): boolean
 
-    nextState(gameTime: number, impactTarget?: GameObject): GameObject[]
+    nextState(state: SnakeGameState, impactTarget?: GameObject): GameObject[]
 }
 
 export function randomPosition(max: Position): Position {

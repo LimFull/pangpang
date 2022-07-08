@@ -1,12 +1,13 @@
 import {GameObject} from "./object";
 
 export class SnakeGameState {
+    version: number
+    time: number = new Date().getTime();
     objects: GameObject[];
     objectIndexesByPos: { [key: string]: Set<number> } = {}
-    time: number = new Date().getTime();
     beforeComputeNextState?: (SnakeGameState) => void
 
-    constructor(objects: GameObject[], beforeComputeNextState?: (state: SnakeGameState) => void) {
+    constructor(objects: GameObject[], beforeComputeNextState?: (state: SnakeGameState) => void, version?: number) {
         this.objects = objects;
         objects.forEach((state, idx) => {
             const key = SnakeGameState.key(state);
@@ -16,6 +17,7 @@ export class SnakeGameState {
 
         if (beforeComputeNextState) beforeComputeNextState(this)
         this.beforeComputeNextState = beforeComputeNextState
+        this.version = version || 0
     }
 
     private static key(object: GameObject): string {
@@ -32,7 +34,7 @@ export class SnakeGameState {
     computeNextState({computeBefore, computeAfter, draw}: {
         computeBefore?: (value: GameObject, index: number, key: string) => void,
         computeAfter?: (value: GameObject, index: number, key: string) => void,
-        draw?: (value:GameObject[])=>void,
+        draw?: (value: GameObject[]) => void,
     } = {}): SnakeGameState {
         const nextObjects: GameObject[] = this.objects.flatMap((object, idx) => {
             const key = SnakeGameState.key(object);
@@ -41,9 +43,9 @@ export class SnakeGameState {
             }
             let result: GameObject[]
             let impactTarget = this.findImpactObject(key, idx);
-            if (object.needComputeNextState(this.time, impactTarget)) {
-                result = object.nextState(this.time, impactTarget)
-                result.forEach(row => row.updateTime = this.time)
+            if (object.needComputeNextState(this, impactTarget)) {
+                result = object.nextState(this, impactTarget)
+                result.forEach(row => row.version = this.version)
             } else {
                 result = [object]
             }
@@ -55,7 +57,7 @@ export class SnakeGameState {
             }
             return result
         });
-        return new SnakeGameState(nextObjects, this.beforeComputeNextState);
+        return new SnakeGameState(nextObjects, this.beforeComputeNextState, this.version + 1);
     }
 
     private findImpactObject(key: string, idx: number): GameObject | undefined {
