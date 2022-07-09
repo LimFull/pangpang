@@ -1,9 +1,9 @@
 import React, {MutableRefObject, useEffect, useRef, useState} from "react";
 import styled from "styled-components";
-import {Direction, randomPosition} from "./object";
+import {Direction, randomPosition} from "../../engin";
 import {Apple} from "./object/Apple";
 import {SnakeHead} from "./object/SnakeHead";
-import {SnakeGameState} from "./SnakeGameState";
+import {Game2dState} from "../../engin/Game2dState";
 import {MAP_SIZE} from "../Constants";
 
 const ButtonArea = styled.div`
@@ -124,7 +124,7 @@ function draw(
     const blockWidth = canvas.width / props.size.x;
     const blockHeight = canvas.height / props.size.y;
 
-    let states = new SnakeGameState(
+    let states = new Game2dState(
         [new Apple(randomPosition(props.size)), snakeHead.current],
         (state) => {
             if (state.objects.filter(row => row instanceof Apple).length === 0) {

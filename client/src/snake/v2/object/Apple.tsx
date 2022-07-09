@@ -1,6 +1,6 @@
-import {GameObject, Position} from "./index";
+import {GameObject, Position} from "../../../engin";
 import {SnakeHead} from "./SnakeHead";
-import {SnakeGameState} from "../SnakeGameState";
+import {Game2dState} from "../../../engin/Game2dState";
 
 export class Apple implements GameObject {
     pos: Position;
@@ -10,11 +10,11 @@ export class Apple implements GameObject {
         this.pos = pos;
     }
 
-    needComputeNextState(state: SnakeGameState, impactTarget?: GameObject): boolean {
+    needComputeNextState(state: Game2dState, impactTarget?: GameObject): boolean {
         return !!impactTarget;
     }
 
-    nextState(state: SnakeGameState, impactTarget?: GameObject): GameObject[] {
+    nextState(state: Game2dState, impactTarget?: GameObject): GameObject[] {
         if (this.consumed) return []
         if (impactTarget instanceof SnakeHead) {
             this.consumed = true

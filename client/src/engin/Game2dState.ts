@@ -1,16 +1,16 @@
-import {GameObject} from "./object";
+import {GameObject} from "./index";
 
-export class SnakeGameState {
+export class Game2dState {
     version: number
     time: number = new Date().getTime();
     objects: GameObject[];
     objectIndexesByPos: { [key: string]: Set<number> } = {}
     beforeComputeNextState?: (SnakeGameState) => void
 
-    constructor(objects: GameObject[], beforeComputeNextState?: (state: SnakeGameState) => void, version?: number) {
+    constructor(objects: GameObject[], beforeComputeNextState?: (state: Game2dState) => void, version?: number) {
         this.objects = objects;
         objects.forEach((state, idx) => {
-            const key = SnakeGameState.key(state);
+            const key = Game2dState.key(state);
             this.objectIndexesByPos[key] = this.objectIndexesByPos[key] || new Set()
             this.objectIndexesByPos[key].add(idx)
         })
@@ -25,7 +25,7 @@ export class SnakeGameState {
     }
 
     addObject(object: GameObject) {
-        const key = SnakeGameState.key(object);
+        const key = Game2dState.key(object);
         this.objects.push(object);
         this.objectIndexesByPos[key] = this.objectIndexesByPos[key] || new Set()
         this.objectIndexesByPos[key].add(this.objects.length - 1)
@@ -35,9 +35,9 @@ export class SnakeGameState {
         computeBefore?: (value: GameObject, index: number, key: string) => void,
         computeAfter?: (value: GameObject, index: number, key: string) => void,
         draw?: (value: GameObject[]) => void,
-    } = {}): SnakeGameState {
+    } = {}): Game2dState {
         const nextObjects: GameObject[] = this.objects.flatMap((object, idx) => {
-            const key = SnakeGameState.key(object);
+            const key = Game2dState.key(object);
             if (computeBefore) {
                 computeBefore(object, idx, key)
             }
@@ -57,7 +57,7 @@ export class SnakeGameState {
             }
             return result
         });
-        return new SnakeGameState(nextObjects, this.beforeComputeNextState, this.version + 1);
+        return new Game2dState(nextObjects, this.beforeComputeNextState, this.version + 1);
     }
 
     private findImpactObject(key: string, idx: number): GameObject | undefined {
