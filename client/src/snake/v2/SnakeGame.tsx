@@ -3,8 +3,9 @@ import styled from "styled-components";
 import {Direction, randomPosition} from "../../engin";
 import {Apple} from "./object/Apple";
 import {SnakeHead} from "./object/SnakeHead";
-import {Game2dState} from "../../engin/Game2dState";
 import {MAP_SIZE} from "../Constants";
+import {Game2dEngin} from "../../engin/Game2dEngin";
+import {snakeGameConfig} from "./SnakeGameConfig";
 
 const ButtonArea = styled.div`
   display: flex;
@@ -124,25 +125,21 @@ function draw(
     const blockWidth = canvas.width / props.size.x;
     const blockHeight = canvas.height / props.size.y;
 
-    let states = new Game2dState(
-        [new Apple(randomPosition(props.size)), snakeHead.current],
-        (state) => {
-            if (state.objects.filter(row => row instanceof Apple).length === 0) {
-                state.addObject(new Apple(randomPosition(props.size)))
-            }
+    const engin = new Game2dEngin(
+        snakeGameConfig([new Apple(randomPosition(props.size)), snakeHead.current], props.size),
+        object => {
+            // states.forEach(state => context.fillText(`${state.pos.x}, ${state.pos.y}`, state.pos.x * blockWidth, state.pos.y * blockHeight))
+            context.strokeRect(object.pos.x * blockWidth, object.pos.y * blockHeight, blockWidth, blockHeight)
         }
     )
 
-    requestAnimationFrame(frame);
+    engin.start(() => {
+        requestAnimationFrame(frame);
+    })
 
     function frame() {
         context.clearRect(0, 0, 10000, 10000)
-        states = states.computeNextState({
-            draw: (states) => {
-                // states.forEach(state => context.fillText(`${state.pos.x}, ${state.pos.y}`, state.pos.x * blockWidth, state.pos.y * blockHeight))
-                states.forEach((state) => context.strokeRect(state.pos.x * blockWidth, state.pos.y * blockHeight, blockWidth, blockHeight))
-            }
-        })
+        engin.deriveNextState()
         requestAnimationFrame(frame);
     }
 }
