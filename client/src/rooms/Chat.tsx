@@ -2,6 +2,15 @@ import {Input} from "antd";
 import styled from "styled-components";
 import {useCallback, useEffect, useRef, useState} from "react";
 import Message from "./Message";
+import SnakeMultiplay from "../snake/multiplay/SnakeMultiplay";
+import {CLIENT_MESSAGE_TYPE} from "../snake/Constants";
+import {ChatRtcData} from "../snake/type/rtc";
+import * as roomActions from "../snake/reducers/room";
+import {bind, RootState} from "../store";
+import {useSelector} from "react-redux";
+import _ from 'lodash'
+
+const {addChat} = bind(roomActions);
 
 const ChatContainer = styled.div`
   display: flex;
@@ -35,58 +44,60 @@ const StyledInput = styled(Input)`
 `
 
 export function Chat() {
-    const [inputValue, setInputValue] = useState('');
-    const container = useRef<HTMLDivElement>(null);
-    const messageBox = useRef<HTMLDivElement>(null);
-    const [messages, setMessages] = useState([{
-        name: '이름',
-        message: 'message',
-    }])
-    const handleChatPosition = useCallback(() => {
-        if (!container.current || !messageBox.current) {
-            return;
-        }
+  const [inputValue, setInputValue] = useState('');
+  const container = useRef<HTMLDivElement>(null);
+  const messageBox = useRef<HTMLDivElement>(null);
+  const handleChatPosition = useCallback(() => {
+    if (!container.current || !messageBox.current) {
+      return;
+    }
 
-        const input = document.getElementsByClassName('ant-input')[0];
-        const {y: containerY} = container.current.getBoundingClientRect();
-        const {y: inputY} = input.getBoundingClientRect();
-        messageBox.current.style.height = `${inputY - containerY}px`;
-        messageBox.current.style.top = `${containerY}px`;
-    }, [])
+    const input = document.getElementsByClassName('ant-input')[0];
+    const {y: containerY} = container.current.getBoundingClientRect();
+    const {y: inputY} = input.getBoundingClientRect();
+    messageBox.current.style.height = `${inputY - containerY}px`;
+    messageBox.current.style.top = `${containerY}px`;
+  }, [])
+  const {chat} = useSelector((state: RootState) => state.room)
 
-    const handleSendMessage = useCallback((e) => {
-        setMessages((prev) => {
-            prev.push({name: "이름", message: e.target.value});
-            return [...prev];
+  const handleSendMessage = useCallback((e) => {
+    // TODO: 닉네임 쓰는곳 필요함
+    const randomName = () => {
+      const names = ['토마토', '기러기', '스위스', '역삼역', '우영우']
+      return names[Math.floor(Math.random() * names.length)];
+    }
+    const name = randomName();
+    const chat: ChatRtcData = {name, message: e.target.value}
+    addChat(chat)
+    SnakeMultiplay.broadcast<ChatRtcData>(CLIENT_MESSAGE_TYPE.CHAT, chat)
+    setInputValue('');
+  }, []);
+
+  const handleInputValue = useCallback(e => {
+    setInputValue(e.target.value);
+  }, [])
+
+  useEffect(() => {
+    handleChatPosition();
+  }, [])
+
+  useEffect(() => {
+    if (!messageBox.current) {
+      return;
+    }
+    messageBox.current.scroll(0, messageBox.current.scrollHeight);
+  }, [chat])
+
+  return <ChatContainer ref={container}>
+    <MessageBox ref={messageBox}>
+      {
+        chat.map((v) => {
+          return <Message name={v.name} message={v.message}/>
         })
-        setInputValue('');
-    }, []);
-
-    const handleInputValue = useCallback(e => {
-        setInputValue(e.target.value);
-    }, [])
-
-    useEffect(() => {
-        handleChatPosition();
-    }, [])
-
-    useEffect(() => {
-        if (!messageBox.current) {
-            return;
-        }
-        messageBox.current.scroll(0, messageBox.current.scrollHeight);
-    }, [messages])
-
-    return <ChatContainer ref={container}>
-        <MessageBox ref={messageBox}>
-            {
-                messages.map((v) => {
-                    return <Message name={v.name} message={v.message}/>
-                })
-            }
-        </MessageBox>
-        <StyledInput value={inputValue} onPressEnter={handleSendMessage} onChange={handleInputValue}/>
-    </ChatContainer>
+      }
+    </MessageBox>
+    <StyledInput value={inputValue} onPressEnter={_.debounce(handleSendMessage, 10)} onChange={handleInputValue}/>
+  </ChatContainer>
 }
 
 export default Chat;

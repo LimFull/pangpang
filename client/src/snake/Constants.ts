@@ -1,11 +1,27 @@
 export const DIRECTION = {
-    UP: 0,
-    RIGHT: 1,
-    DOWN: 2,
-    LEFT: 3,
+  UP: 0,
+  RIGHT: 1,
+  DOWN: 2,
+  LEFT: 3,
 }
 
 export const MAP_SIZE = {
-    WIDTH: 50,
-    HEIGHT: 60,
+  WIDTH: 50,
+  HEIGHT: 60,
+}
+
+export const CLIENT_MESSAGE_TYPE = {
+  OPEN: "OPEN",
+  CHAT: "CHAT"
+}
+
+export const SERVER_MESSAGE_TYPE = {
+  CREATE_ID: "CREATE_ID",
+  GET_ROOMS: "GET_ROOMS",
+  CREATE_ROOM: "CREATE_ROOM",
+  JOIN_ROOM: "JOIN_ROOM",
+  CREATE_OFFER: "CREATE_OFFER",
+  INIT_CONNECTION: "INIT_CONNECTION",
+  CREATE_ANSWER: "CREATE_ANSWER",
+  GET_ANSWER: "GET_ANSWER",
 }

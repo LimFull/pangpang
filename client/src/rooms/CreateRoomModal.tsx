@@ -1,6 +1,7 @@
 import {Button, Form, Input, Modal} from "antd";
 import FormItem from "antd/lib/form/FormItem";
 import {useCallback} from "react";
+import SnakeMultiplay from "../snake/multiplay/SnakeMultiplay";
 
 interface Props {
     visible: boolean;
@@ -13,7 +14,7 @@ export function CreateRoomModal({visible, onCancel}: Props) {
     }
 
     const handleFinish = useCallback((values) => {
-        console.log("values", values.title)
+        SnakeMultiplay.createRoom(values.title);
     }, []);
 
     return <Modal width={300} title={'방 만들기'} visible={visible} onCancel={handleOnCancel} footer={[

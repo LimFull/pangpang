@@ -1,7 +1,7 @@
 import axios, {AxiosInstance} from 'axios';
 
 export class Base {
-    baseApi = 'http://localhost:8001';
+    baseApi = 'http://localhost:8002';
     baseApiInstance: (path) => AxiosInstance = Base.setInstance(this.baseApi);
     base: AxiosInstance;
 

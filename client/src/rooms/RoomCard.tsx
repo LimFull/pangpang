@@ -1,5 +1,7 @@
 import styled from "styled-components";
 import {Button, Typography} from "antd";
+import SnakeMultiplay from "../snake/multiplay/SnakeMultiplay";
+import {useCallback} from "react";
 
 const {Title, Text} = Typography;
 
@@ -39,20 +41,24 @@ const JoinButton = styled(Button)`
 `
 
 interface Props {
-    roomId: number
+    roomNumber: number
     roomTitle: string
     member: number
 }
 
-export function RoomCard({roomId = 0, roomTitle = 'Default', member = 0}: Props) {
+export function RoomCard({roomNumber = 0, roomTitle = 'Default', member = 0}: Props) {
+    const handleJoin = useCallback(() => {
+        console.log("roomnumber!!!!", roomNumber)
+        SnakeMultiplay.joinRoom(roomNumber);
+    }, []);
     return <CardContainer>
         <InfoContainer>
-            <Text style={{color: '#5e5e5e'}}>{roomId}</Text>
+            <Text style={{color: '#5e5e5e'}}>{roomNumber}</Text>
             <Text style={{color: '#5e5e5e'}}>{member}/4</Text>
         </InfoContainer>
         <InfoContainer style={{paddingBottom: 8, paddingTop: 10}}>
             <Title level={3}>{roomTitle}</Title>
-            <JoinButton>입장</JoinButton>
+            <JoinButton onClick={handleJoin}>입장</JoinButton>
         </InfoContainer>
     </CardContainer>
 }
