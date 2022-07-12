@@ -90,9 +90,9 @@ export class SnakeMultiplay extends MultiPlay implements MultiPlayInterface {
       addChat(data)
     }
 
+    // SnakeObserverObject 들에게 보냄
+    this.subject.next(msg);
   }
-
-
 }
 
 export default new SnakeMultiplay();

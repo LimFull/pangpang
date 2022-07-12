@@ -1,4 +1,5 @@
 import {SERVER_MESSAGE_TYPE} from "../snake/Constants";
+import {Subject} from "@reactivex/rxjs/dist/package";
 
 const PC_CONFIG = {iceServers: [{urls: 'stun:stun.l.google.com:19302'}]};
 
@@ -30,8 +31,13 @@ export class MultiPlay implements MultiPlayInterface {
   connections: connections = {}
   socket: WebSocket | null = null;
   id: number = 0;
+  subject: Subject<any> = new Subject<any>();
 
   constructor() {
+  }
+
+  subscribe(observer) {
+    return this.subject.subscribe(observer)
   }
 
   createKey(id: number) {
@@ -62,7 +68,7 @@ export class MultiPlay implements MultiPlayInterface {
 
   async connectSocket() {
     return new Promise<void>((resolve, reject) => {
-      this.socket = new WebSocket('ws://172.20.10.8:8001');
+      this.socket = new WebSocket('ws://localhost:8001');
       // this.socket = new WebSocket('ws://localhost:8001');
       this.socket.onclose = () => {
         console.log("close", this.id);
