@@ -7,7 +7,8 @@ import {
   CreateAnswerResponseData,
   CreateIdResponseData,
   CreateOfferResponseData,
-  CreateRoomResponseData, GetAnswerResponseData,
+  CreateRoomResponseData,
+  GetAnswerResponseData,
   GetRoomsResponseData,
   JoinRoomResponseData
 } from "../type/socket";
@@ -41,7 +42,7 @@ export class SnakeMultiplay extends MultiPlay implements MultiPlayInterface {
 
   onSocketMessage = (message: MessageEvent) => {
     const msg: messageObject = this.toObjectMessage(message)
-    console.log(msg.type, msg.data)
+    console.log('onSocketMessage', msg.type, msg.data)
     if (msg.type === SERVER_MESSAGE_TYPE.CREATE_ID) {
       const data: CreateIdResponseData = msg.data;
       this.id = data.id;
@@ -57,11 +58,10 @@ export class SnakeMultiplay extends MultiPlay implements MultiPlayInterface {
       setRoomNumber(data.roomNumber);
     } else if (msg.type === SERVER_MESSAGE_TYPE.INIT_CONNECTION) {
       const data: CreateOfferResponseData = msg.data;
-      this.initConnection(this.createKey(data.id) as connectionKey).then(
-        key => {
-          this.createOffer(key);
-        }
-      )
+      this.initConnection(this.createKey(data.id) as connectionKey)
+          .then(key => {
+            this.createOffer(key)
+          })
     } else if (msg.type === SERVER_MESSAGE_TYPE.CREATE_ANSWER) {
       const data: CreateAnswerResponseData = msg.data;
       this.initConnection(this.createKey(data.fromId) as connectionKey).then((key) => {
@@ -90,9 +90,9 @@ export class SnakeMultiplay extends MultiPlay implements MultiPlayInterface {
       addChat(data)
     }
 
+    // SnakeObserverObject 들에게 보냄
+    this.subject.next(msg);
   }
-
-
 }
 
 export default new SnakeMultiplay();

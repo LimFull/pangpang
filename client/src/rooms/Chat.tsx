@@ -9,6 +9,7 @@ import * as roomActions from "../snake/reducers/room";
 import {bind, RootState} from "../store";
 import {useSelector} from "react-redux";
 import _ from 'lodash'
+import {Apple} from "../snake/v2/object/Apple";
 
 const {addChat} = bind(roomActions);
 
