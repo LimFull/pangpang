@@ -13,7 +13,7 @@ export interface GetRoomsResponseData {
 }
 
 export interface CreateIdResponseData {
-  id: number
+  id: string
 }
 
 export interface JoinRoomResponseData {
