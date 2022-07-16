@@ -1,7 +1,29 @@
 import {SERVER_MESSAGE_TYPE} from "../snake/Constants";
 import {Subject} from "@reactivex/rxjs/dist/package";
 
-const PC_CONFIG = {iceServers: [{urls: 'stun:stun.l.google.com:19302'}]};
+// TODO: 턴서버 바꿔야 함
+const PC_CONFIG = {
+    iceServers: [
+        {
+            urls: "stun:openrelay.metered.ca:80",
+        },
+        {
+            urls: "turn:openrelay.metered.ca:80",
+            username: "openrelayproject",
+            credential: "openrelayproject",
+        },
+        {
+            urls: "turn:openrelay.metered.ca:443",
+            username: "openrelayproject",
+            credential: "openrelayproject",
+        },
+        {
+            urls: "turn:openrelay.metered.ca:443?transport=tcp",
+            username: "openrelayproject",
+            credential: "openrelayproject",
+        },
+    ]
+};
 
 export interface messageObject {
     type: string,
@@ -11,6 +33,7 @@ export interface messageObject {
 interface rtcObject {
     pc?: RTCPeerConnection,
     channel?: RTCDataChannel,
+    candidate?: RTCIceCandidate
 }
 
 // `${userId}::${userId}`
@@ -68,8 +91,7 @@ export class MultiPlay implements MultiPlayInterface {
 
     async connectSocket() {
         return new Promise<void>((resolve, reject) => {
-            this.socket = new WebSocket('ws://localhosg:8001');
-            // this.socket = new WebSocket('ws://localhost:8001');
+            this.socket = new WebSocket('시그널링 소켓 서버 주소');
             this.socket.onclose = () => {
                 console.log("close", this.id);
             }
@@ -110,21 +132,18 @@ export class MultiPlay implements MultiPlayInterface {
 
         const pc = new RTCPeerConnection(PC_CONFIG);
 
-        pc.ondatachannel = (event: RTCDataChannelEvent) => {
-            this.connections[key].channel = event.channel;
-            this.connections[key].channel!.onopen = this.onOpen(this.connections[key].channel!);
-            this.connections[key].channel!.onmessage = this.onMessage;
-        };
-
-
         pc.onicecandidate = (e) => {
+            console.log("onIceCandidate", e.candidate)
+            if (e.candidate) {
+                this.connections[key].candidate = e.candidate
+            }
             if (e.candidate) {
                 return;
             }
-            const sdp = this.connections[key].pc!.localDescription!.sdp;
-            // socket..emit('offer', sdp);
-            // const textarea = document.getElementById('sdparea')! as HTMLTextAreaElement;
-            // textarea.value = btoa(sdp);
+            this.sendSocketMessage(SERVER_MESSAGE_TYPE.CANDIDATE, {
+                toId: this.getToIdFromKey(key),
+                candidate: this.connections[key].candidate
+            })
         }
 
         this.connections[key].pc = pc;
@@ -133,42 +152,15 @@ export class MultiPlay implements MultiPlayInterface {
     }
 
     async createOffer(key: connectionKey) {
+        console.log("createOffer")
         if (!this.connections[key]) this.connections[key] = {};
-        this.connections[key].pc!.ondatachannel!({
-            channel: this.connections[key].pc!.createDataChannel('pangpang'),
-            bubbles: false,
-            cancelBubble: false,
-            cancelable: false,
-            composed: false,
-            currentTarget: null,
-            defaultPrevented: false,
-            eventPhase: 0,
-            isTrusted: false,
-            returnValue: false,
-            srcElement: null,
-            target: null,
-            timeStamp: 0,
-            type: '',
-            composedPath: function (): EventTarget[] {
-                throw new Error('Function not implemented.');
-            },
-            initEvent: function (type: string, bubbles?: boolean | undefined, cancelable?: boolean | undefined): void {
-                throw new Error('Function not implemented.');
-            },
-            preventDefault: function (): void {
-                throw new Error('Function not implemented.');
-            },
-            stopImmediatePropagation: function (): void {
-                throw new Error('Function not implemented.');
-            },
-            stopPropagation: function (): void {
-                throw new Error('Function not implemented.');
-            },
-            AT_TARGET: 0,
-            BUBBLING_PHASE: 0,
-            CAPTURING_PHASE: 0,
-            NONE: 0,
-        });
+
+        this.connections[key].channel = this.connections[key].pc!.createDataChannel('pangpang');
+        this.connections[key].channel!.onopen = this.onOpen(this.connections[key].channel!);
+        this.connections[key].channel!.onmessage = this.onMessage;
+        this.connections[key].channel!.onclose = () => {
+            console.log("Data Channel closed, key =", key)
+        }
 
         const sdp = await this.connections[key].pc!.createOffer();
 
@@ -182,11 +174,18 @@ export class MultiPlay implements MultiPlayInterface {
             sdp,
             toId: this.getToIdFromKey(key)
         });
-
     };
 
     async createAnswer(key: connectionKey, sdp: object) {
         if (!this.connections[key]) this.connections[key] = {};
+        this.connections[key].pc!.ondatachannel = (event) => {
+            this.connections[key].channel = event.channel;
+            this.connections[key].channel!.onopen = this.onOpen(this.connections[key].channel!);
+            this.connections[key].channel!.onmessage = this.onMessage;
+            this.connections[key].channel!.onclose = () => {
+                console.log("Data Channel closed, key =", key)
+            }
+        }
 
         const obj: RTCSessionDescription = sdp as RTCSessionDescription;
         try {
@@ -199,11 +198,18 @@ export class MultiPlay implements MultiPlayInterface {
         }
 
         this.connections[key].pc!.onicecandidate = (e) => {
+            if (e.candidate) {
+                this.connections[key].candidate = e.candidate
+            }
             if (e.candidate) return;
 
             this.sendSocketMessage(SERVER_MESSAGE_TYPE.CREATE_ANSWER, {
                 toId: this.getToIdFromKey(key),
                 sdp: this.connections[key].pc!.localDescription!.sdp
+            })
+            this.sendSocketMessage(SERVER_MESSAGE_TYPE.CANDIDATE, {
+                toId: this.getToIdFromKey(key),
+                candidate: this.connections[key].candidate
             })
         };
 
@@ -218,6 +224,10 @@ export class MultiPlay implements MultiPlayInterface {
         this.connections[key].pc!.setRemoteDescription(new RTCSessionDescription(obj)).then(() => {
             console.log('remote set success');
         });
+    }
+
+    candidate(key: connectionKey, candidate: object) {
+        this.connections[key].pc!.addIceCandidate(candidate as RTCIceCandidateInit)
     }
 
 
