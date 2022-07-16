@@ -1,35 +1,40 @@
 export interface CreateRoomResponseData {
-  roomNumber: number,
+    roomNumber: number,
 }
 
 export interface GetRoomsResponseData {
-  rooms: [
-    {
-      title: string,
-      roomNumber: number,
-      member: number,
-    }
-  ]
+    rooms: [
+        {
+            title: string,
+            roomNumber: number,
+            member: number,
+        }
+    ]
 }
 
 export interface CreateIdResponseData {
-  id: string
+    id: string
 }
 
 export interface JoinRoomResponseData {
-  roomNumber: number
+    roomNumber: number
 }
 
 export interface CreateOfferResponseData {
-  id: number
+    id: number
 }
 
 export interface CreateAnswerResponseData {
-  fromId: number,
-  sdp: object
+    fromId: number,
+    sdp: object
 }
 
 export interface GetAnswerResponseData {
-  fromId: number,
-  sdp: string
+    fromId: number,
+    sdp: string
+}
+
+export interface CandidateData {
+    fromId: number,
+    candidate: object;
 }
