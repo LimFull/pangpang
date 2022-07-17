@@ -1,4 +1,8 @@
-const initialState = {
+interface MultiStateType {
+    id: number,
+}
+
+const initialState: MultiStateType = {
     id: 0,
 }
 
@@ -22,6 +26,5 @@ const multiReducer = (state = initialState, action) => {
 export const setId = (id: number) => (dispatch) => {
     dispatch({type: SET_ID, payload: {id}})
 }
-
 
 export default multiReducer;

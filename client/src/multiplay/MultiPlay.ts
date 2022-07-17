@@ -91,7 +91,7 @@ export class MultiPlay implements MultiPlayInterface {
 
     async connectSocket() {
         return new Promise<void>((resolve, reject) => {
-            this.socket = new WebSocket('시그널링 소켓 서버 주소');
+            this.socket = new WebSocket('ws://localhost:8001');
             this.socket.onclose = () => {
                 console.log("close", this.id);
             }

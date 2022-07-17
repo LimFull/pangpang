@@ -8,11 +8,16 @@ import {Routes} from "react-router";
 import {SnakeGame} from "./snake/v2/SnakeGame";
 import {Provider} from "react-redux";
 import store from "./store";
+import {persistStore} from "redux-persist";
+import {PersistGate} from "redux-persist/integration/react";
 
+
+const persistor = persistStore(store);
 
 function App() {
     return (
         <Provider store={store}>
+            <PersistGate persistor={persistor}/>
             <Router>
                 <PageWrapper>
                     <Routes>

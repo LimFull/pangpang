@@ -1,5 +1,8 @@
 import styled from "styled-components";
 import {ReactNode} from "react";
+import {useSelector} from "react-redux";
+import {RootState} from "../store";
+import Nickname from "./Nickname";
 
 const Container = styled.div`
   display: flex;
@@ -10,6 +13,7 @@ const Container = styled.div`
   position: fixed;
   flex-direction: column;
   overflow: scroll;
+
 `
 
 interface PageWrapper {
@@ -17,6 +21,12 @@ interface PageWrapper {
 }
 
 export function PageWrapper({children}: PageWrapper) {
+    const {nickname} = useSelector((state: RootState) => state.account);
+    
+    if (!nickname) {
+        return <Nickname/>
+    }
+
     return <Container>
         {children}
     </Container>
