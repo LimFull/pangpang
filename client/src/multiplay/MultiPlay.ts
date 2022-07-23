@@ -5,23 +5,10 @@ import {Subject} from "@reactivex/rxjs/dist/package";
 const PC_CONFIG = {
     iceServers: [
         {
-            urls: "stun:openrelay.metered.ca:80",
-        },
-        {
-            urls: "turn:openrelay.metered.ca:80",
-            username: "openrelayproject",
-            credential: "openrelayproject",
-        },
-        {
-            urls: "turn:openrelay.metered.ca:443",
-            username: "openrelayproject",
-            credential: "openrelayproject",
-        },
-        {
-            urls: "turn:openrelay.metered.ca:443?transport=tcp",
-            username: "openrelayproject",
-            credential: "openrelayproject",
-        },
+            urls: "turn:3.38.153.182:3478",
+            username: "user",
+            credential: "pang",
+        }
     ]
 };
 
@@ -91,7 +78,7 @@ export class MultiPlay implements MultiPlayInterface {
 
     async connectSocket() {
         return new Promise<void>((resolve, reject) => {
-            this.socket = new WebSocket('ws://localhost:8001');
+            this.socket = new WebSocket('wss://s8sc0oaqbh.execute-api.ap-northeast-2.amazonaws.com/prod');
             this.socket.onclose = () => {
                 console.log("close", this.id);
             }
