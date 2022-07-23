@@ -84,9 +84,9 @@ export function Rooms() {
   }, [id])
 
   useEffect(() => {
-      resetRoom();
-      SnakeMultiplay.connectSocket();
-    }, []
+        resetRoom();
+        SnakeMultiplay.connectSocket();
+      }, []
   )
 
   useEffect(() => {

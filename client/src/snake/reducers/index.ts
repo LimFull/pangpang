@@ -4,7 +4,6 @@ import multi from "./multi";
 import account from './account';
 import {persistReducer} from "redux-persist";
 import storageSession from "redux-persist/lib/storage/session";
-import storage from "redux-persist/lib/storage";
 import {PersistConfig} from "redux-persist/es/types";
 
 export const reducers = combineReducers({

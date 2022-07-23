@@ -66,83 +66,83 @@ const DownArrowContainer = styled.div`
 `
 
 interface Props {
-  size: {
-    x: number
-    y: number
-  }
+    size: {
+        x: number
+        y: number
+    }
 }
 
 export function SnakeGame() {
-  return <SnakeGameWithProps size={{x: MAP_SIZE.WIDTH, y: MAP_SIZE.HEIGHT}}/>
+    return <SnakeGameWithProps size={{x: MAP_SIZE.WIDTH, y: MAP_SIZE.HEIGHT}}/>
 }
 
 function SnakeGameWithProps(props: Props) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const snakeHead = useRef<SnakeHead>(useMemo(() => new SnakeHead({x: 2, y: 4}, Direction.RIGHT), []));
-  const [state, setState] = useState(false);
-  
-  useEffect(() => {
-    if (!snakeHead || snakeHead.current) return;
+    const containerRef = useRef<HTMLDivElement>(null);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const snakeHead = useRef<SnakeHead>(useMemo(() => new SnakeHead({x: 2, y: 4}, Direction.RIGHT), []));
+    const [state, setState] = useState(false);
 
-    const context = canvasRef.current?.getContext('2d')
-    if (context && state) draw(canvasRef.current!!, context, props, snakeHead);
-    else setState(true)
-  }, [state])
+    useEffect(() => {
+        if (!snakeHead || snakeHead.current) return;
 
-  const handleDirection = (direction: Direction) => () => {
-    if (!snakeHead.current) return
-    const toHandle = (snakeHead.current.direction + direction) % 2;
-    if (toHandle) {
-      snakeHead.current.direction = direction;
+        const context = canvasRef.current?.getContext('2d')
+        if (context && state) draw(canvasRef.current!!, context, props, snakeHead);
+        else setState(true)
+    }, [state])
+
+    const handleDirection = (direction: Direction) => () => {
+        if (!snakeHead.current) return
+        const toHandle = (snakeHead.current.direction + direction) % 2;
+        if (toHandle) {
+            snakeHead.current.direction = direction;
+        }
     }
-  }
 
-  return <Container ref={containerRef}>
-    <canvas ref={canvasRef} width={'400'} height={'480'} style={{background: 'rgb(255,255,255)'}}/>
-    <ButtonArea style={{position: "relative"}}>
-      <ArrowArea>
-        <UpArrowContainer>
-          <button onClick={handleDirection(Direction.UP)} style={{width: '15vw', height: '15vw'}}></button>
-        </UpArrowContainer>
-        <HorizonArrowContainer>
-          <button onClick={handleDirection(Direction.LEFT)} style={{width: '15vw', height: '15vw'}}></button>
-          <button onClick={handleDirection(Direction.RIGHT)} style={{width: '15vw', height: '15vw'}}></button>
-        </HorizonArrowContainer>
-        <DownArrowContainer>
-          <button onClick={handleDirection(Direction.DOWN)} style={{width: '15vw', height: '15vw'}}></button>
-        </DownArrowContainer>
-      </ArrowArea>
-    </ButtonArea>
-  </Container>
+    return <Container ref={containerRef}>
+        <canvas ref={canvasRef} width={'400'} height={'480'} style={{background: 'rgb(255,255,255)'}}/>
+        <ButtonArea style={{position: "relative"}}>
+            <ArrowArea>
+                <UpArrowContainer>
+                    <button onClick={handleDirection(Direction.UP)} style={{width: '15vw', height: '15vw'}}></button>
+                </UpArrowContainer>
+                <HorizonArrowContainer>
+                    <button onClick={handleDirection(Direction.LEFT)} style={{width: '15vw', height: '15vw'}}></button>
+                    <button onClick={handleDirection(Direction.RIGHT)} style={{width: '15vw', height: '15vw'}}></button>
+                </HorizonArrowContainer>
+                <DownArrowContainer>
+                    <button onClick={handleDirection(Direction.DOWN)} style={{width: '15vw', height: '15vw'}}></button>
+                </DownArrowContainer>
+            </ArrowArea>
+        </ButtonArea>
+    </Container>
 }
 
 function draw(
-  canvas: HTMLCanvasElement,
-  context: CanvasRenderingContext2D,
-  props: Props,
-  snakeHead: MutableRefObject<SnakeHead>
+    canvas: HTMLCanvasElement,
+    context: CanvasRenderingContext2D,
+    props: Props,
+    snakeHead: MutableRefObject<SnakeHead>
 ) {
 
-  const blockWidth = canvas.width / props.size.x;
-  const blockHeight = canvas.height / props.size.y;
+    const blockWidth = canvas.width / props.size.x;
+    const blockHeight = canvas.height / props.size.y;
 
-  const engin = new Game2dEngin(
-    snakeGameConfig([new Apple(randomPosition(props.size)), snakeHead.current], props.size),
-    object => {
-      // states.forEach(state => context.fillText(`${state.pos.x}, ${state.pos.y}`, state.pos.x * blockWidth, state.pos.y * blockHeight))
-      context.strokeRect(object.pos.x * blockWidth, object.pos.y * blockHeight, blockWidth, blockHeight)
+    const engin = new Game2dEngin(
+        snakeGameConfig([new Apple(randomPosition(props.size)), snakeHead.current], props.size),
+        object => {
+            // states.forEach(state => context.fillText(`${state.pos.x}, ${state.pos.y}`, state.pos.x * blockWidth, state.pos.y * blockHeight))
+            context.strokeRect(object.pos.x * blockWidth, object.pos.y * blockHeight, blockWidth, blockHeight)
+        }
+    )
+
+    engin.start(() => {
+        requestAnimationFrame(frame);
+    })
+
+    function frame() {
+        context.clearRect(0, 0, 10000, 10000)
+        engin.deriveNextState()
+        requestAnimationFrame(frame);
     }
-  )
-
-  engin.start(() => {
-    requestAnimationFrame(frame);
-  })
-
-  function frame() {
-    context.clearRect(0, 0, 10000, 10000)
-    engin.deriveNextState()
-    requestAnimationFrame(frame);
-  }
 }
 

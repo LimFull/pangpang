@@ -22,7 +22,7 @@ interface PageWrapper {
 
 export function PageWrapper({children}: PageWrapper) {
     const {nickname} = useSelector((state: RootState) => state.account);
-    
+
     if (!nickname) {
         return <Nickname/>
     }
