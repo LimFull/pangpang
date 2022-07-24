@@ -9,6 +9,7 @@ import * as roomActions from "../snake/reducers/room";
 import {bind, RootState} from "../store";
 import {useSelector} from "react-redux";
 import _ from 'lodash'
+import {useSession} from "../session";
 
 const {addChat} = bind(roomActions);
 
@@ -60,7 +61,7 @@ export function Chat() {
     }, [])
     const state = useSelector((state: RootState) => state)
     const {chat} = state.room
-    const {nickname} = state.account
+    const nickname = useSession().user.name
 
     const handleSendMessage = useCallback((e) => {
         const chat: ChatRtcData = {name: nickname, message: e.target.value}
