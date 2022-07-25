@@ -2,11 +2,9 @@ export interface Api {
 
     signIn(request: SignInRequest): Promise<SignInResult>
 
-    // getRooms(): Room[]
-    //
-    // createRoom()
-    //
-    // joinRoom()
+    getRooms(): Promise<RoomModel[]>
+
+    joinRoom(roomNumber: number): Promise<JoinRoomResult>
 }
 
 export interface SignInRequest {
@@ -17,12 +15,16 @@ export interface SignInResult {
     id: number
 }
 
-export interface Room {
+export interface RoomModel {
     title: string
     roomNumber: number
     member: number
 }
 
 export interface CreateRoomResult {
+    roomNumber: number;
+}
+
+export interface JoinRoomResult {
     roomNumber: number;
 }

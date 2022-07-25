@@ -23,22 +23,8 @@ export class SnakeMultiplay extends MultiPlay implements MultiPlayInterface {
         super();
     }
 
-    async connectSocket(): Promise<void> {
-        await super.connectSocket();
-
-    }
-
     createRoom(title: string) {
         this.sendSocketMessage(SERVER_MESSAGE_TYPE.CREATE_ROOM, {title})
-    }
-
-    getRooms() {
-        this.sendSocketMessage(SERVER_MESSAGE_TYPE.GET_ROOMS);
-    }
-
-    joinRoom(roomNumber: number) {
-        console.log("joinRoom", roomNumber)
-        this.sendSocketMessage(SERVER_MESSAGE_TYPE.JOIN_ROOM, {roomNumber})
     }
 
     onSocketMessage = (message: MessageEvent) => {
