@@ -61,6 +61,21 @@ exports.handler = async (event) => {
 async function handleMessageData(message, connectionId) {
     console.log('handleMessageData', message)
     switch (message.type) {
+        case 'SIGN_IN': {
+            const id = Math.floor(Math.random() * 100000)
+            await ddb.putItem({
+                TableName: 'user',
+                Item: {
+                    id: {N: `${id}`},
+                    socketId: {S: connectionId},
+                    name: {S: message.data.name},
+                }
+            }).promise()
+            return {
+                type: message.type,
+                data: {id: id}
+            }
+        }
         case 'CREATE_ROOM': {
             const roomNumber = `${Math.floor(Math.random() * 100000)}`
             await ddb.putItem({

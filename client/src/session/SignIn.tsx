@@ -1,4 +1,3 @@
-import {User} from "./index";
 import * as React from "react";
 import {useState} from "react";
 import {Box, Button, Stack, TextField} from "@mui/material";
@@ -13,8 +12,12 @@ const Container = styled.div`
   height: 100vh;
 `
 
-export function SignIn({complete}: { complete: (user: User) => void }) {
-    const [state, setState] = useState<{ error: boolean, user: User }>({error: false, user: {name: ''}});
+interface UserData {
+    name: string
+}
+
+export function SignIn({complete}: { complete: (user: UserData) => void }) {
+    const [state, setState] = useState<{ error: boolean, user: UserData }>({error: false, user: {name: ''}});
     return <Container>
         <Box component={'form'}
              onSubmit={e => {
