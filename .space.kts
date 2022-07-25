@@ -12,6 +12,7 @@ import kotlin.streams.asSequence
 job("build and publish client") {
     startOn {
         gitPush {
+            branchFilter = "refs/heads/dev"
             pathFilter {
                 +"client/**"
             }
@@ -55,6 +56,7 @@ job("build and publish client") {
 job("build and publish lambda") {
     startOn {
         gitPush {
+            branchFilter = "refs/heads/dev"
             pathFilter {
                 +"lambda/**"
             }
