@@ -101,7 +101,11 @@ export class MultiPlay implements MultiPlayInterface {
     broadcast<T>(type: string, data: T) {
         const message = this.toStringMessage(type, data);
         for (let connectionsKey in this.connections) {
-            this.connections[connectionsKey].channel.send(message)
+            try {
+                this.connections[connectionsKey].channel.send(message)
+            } catch (e) {
+                console.log(e);
+            }
         }
     }
 
@@ -114,12 +118,18 @@ export class MultiPlay implements MultiPlayInterface {
     onMessage(message: Event): void {
     }
 
+    lossConnection(key: string): void {
+        console.log("loss Connection", key)
+        delete this.connections[key];
+    }
+
     async initConnection(key: connectionKey) {
         if (!this.connections[key]) this.connections[key] = {}
 
         const pc = new RTCPeerConnection(PC_CONFIG);
 
         pc.onicecandidate = (e) => {
+
             console.log("onIceCandidate", e.candidate)
             if (e.candidate) {
                 this.connections[key].candidate = e.candidate
@@ -135,7 +145,15 @@ export class MultiPlay implements MultiPlayInterface {
 
         this.connections[key].pc = pc;
 
+        this.connections[key].pc!.oniceconnectionstatechange = (e) => {
+            const state = this.connections[key].pc!.iceConnectionState
+            console.log("state change", state);
+            if (state === 'disconnected') {
+                this.lossConnection(key);
+            }
+        };
         return key;
+
     }
 
     async createOffer(key: connectionKey) {
@@ -200,9 +218,13 @@ export class MultiPlay implements MultiPlayInterface {
             })
         };
 
-        this.connections[key].pc!.oniceconnectionstatechange = (e) => {
-            console.log("state change", this.connections[key].pc!.iceConnectionState);
-        };
+        // this.connections[key].pc!.oniceconnectionstatechange = (e) => {
+        //     const state = this.connections[key].pc!.iceConnectionState
+        //     console.log("state change", state);
+        //     if (state === 'disconnected') {
+        //         console.log("연결 끊김", key)
+        //     }
+        // };
     };
 
     getAnswer(key: connectionKey, sdp: string) {

@@ -81,6 +81,11 @@ export class SnakeMultiplay extends MultiPlay implements MultiPlayInterface {
         }
     }
 
+    lossConnection(key: string): void {
+        super.lossConnection(key);
+        // TODO: 나갔습니다.
+    }
+
     onOpen(data: RTCDataChannel): () => void {
         return () => {
             console.log("hello send");
