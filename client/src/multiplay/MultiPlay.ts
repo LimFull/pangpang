@@ -8,13 +8,32 @@ const PC_CONFIG = {
             urls: "turn:3.38.153.182:3478",
             username: "user",
             credential: "pang",
-        }
+        },
+        {
+            urls: "stun:openrelay.metered.ca:80",
+        },
+        {
+            urls: "turn:openrelay.metered.ca:80",
+            username: "openrelayproject",
+            credential: "openrelayproject",
+        },
+        {
+            urls: "turn:openrelay.metered.ca:443",
+            username: "openrelayproject",
+            credential: "openrelayproject",
+        },
+        {
+            urls: "turn:openrelay.metered.ca:443?transport=tcp",
+            username: "openrelayproject",
+            credential: "openrelayproject",
+        },
     ]
 };
 
 export interface messageObject {
+    id: string,
     type: string,
-    data: any
+    data: any,
 }
 
 interface rtcObject {
@@ -242,7 +261,7 @@ export class MultiPlay implements MultiPlayInterface {
 
     protected toStringMessage(type, data?) {
         const msg: messageObject = {
-            type, data
+            type, id: this.id, data
         }
         return JSON.stringify(msg)
     }
