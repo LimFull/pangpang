@@ -41,7 +41,10 @@ export class DefaultApi implements Api {
     }
 
     signIn(request: SignInRequest): Promise<SignInResult> {
-        return this.awaitMessage('SIGN_IN', request)
+        return this.awaitMessage<SignInResult>('SIGN_IN', request).then(result => {
+            SnakeMultiplay.id = result.connectionId;
+            return result;
+        })
     }
 
     getRooms(): Promise<RoomModel[]> {

@@ -1,17 +1,7 @@
 import {connectionKey, messageObject, MultiPlay, MultiPlayInterface} from "../../multiplay/MultiPlay";
 import {CLIENT_MESSAGE_TYPE, SERVER_MESSAGE_TYPE} from "../Constants";
-import * as multiActions from '../reducers/multi';
-import {bind} from "../../store";
-import {
-    CandidateData,
-    CreateAnswerResponseData,
-    CreateIdResponseData,
-    CreateOfferResponseData,
-    GetAnswerResponseData
-} from "../type/socket";
+import {CandidateData, CreateAnswerResponseData, CreateOfferResponseData, GetAnswerResponseData} from "../type/socket";
 import {ChatRtcData} from "../type/rtc";
-
-const {setId} = bind(multiActions);
 
 export class SnakeMultiplay extends MultiPlay implements MultiPlayInterface {
     constructor() {
@@ -24,11 +14,7 @@ export class SnakeMultiplay extends MultiPlay implements MultiPlayInterface {
     onSocketMessage = (message: MessageEvent) => {
         const msg: messageObject = this.toObjectMessage(message)
         console.log('onSocketMessage', msg.type, msg.data)
-        if (msg.type === SERVER_MESSAGE_TYPE.CREATE_ID) {
-            const data: CreateIdResponseData = msg.data;
-            this.id = data.id;
-            setId(this.id);
-        } else if (msg.type === SERVER_MESSAGE_TYPE.INIT_CONNECTION) {
+        if (msg.type === SERVER_MESSAGE_TYPE.INIT_CONNECTION) {
             const data: CreateOfferResponseData = msg.data;
             this.initConnection(this.createKey(data.id) as connectionKey)
                 .then(key => {

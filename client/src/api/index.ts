@@ -18,7 +18,8 @@ export interface SignInRequest {
 }
 
 export interface SignInResult {
-    id: number
+    id: number;
+    connectionId: string;
 }
 
 export interface RoomModel {

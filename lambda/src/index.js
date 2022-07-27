@@ -102,7 +102,6 @@ async function createRoom({type, data}, connectionId) {
 
 async function getRooms({type, data}, connectionId) {
     const result = await ddb.scan({TableName: 'room'}, handleAwsOutput).promise();
-    await pushMessage(connectionId, 'CREATE_ID', {id: connectionId})
     await pushMessage(connectionId, type, {
             rooms: result.Items.map(row => ({
                 roomNumber: row.roomNumber.N,
