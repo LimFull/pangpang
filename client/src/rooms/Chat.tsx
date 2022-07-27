@@ -1,100 +1,55 @@
-import {Input} from "antd";
-import styled from "styled-components";
-import {useCallback, useEffect, useRef, useState} from "react";
-import Message from "./Message";
-import SnakeMultiplay from "../snake/multiplay/SnakeMultiplay";
-import {CLIENT_MESSAGE_TYPE} from "../snake/Constants";
-import {ChatRtcData} from "../snake/type/rtc";
-import * as roomActions from "../snake/reducers/room";
-import {bind, RootState} from "../store";
-import {useSelector} from "react-redux";
-import _ from 'lodash'
+import React, {useEffect, useRef, useState} from "react";
 import {useSession} from "../session";
-
-const {addChat} = bind(roomActions);
-
-const ChatContainer = styled.div`
-  display: flex;
-  flex: 1;
-  width: 95vw;
-  background: rgba(0, 0, 0, 0.5);
-  flex-direction: column;
-  align-items: center;
-  overflow: scroll;
-  bottom: 0;
-`
-
-const MessageBox = styled.div`
-  display: flex;
-  width: 95vw;
-  flex-direction: column;
-  padding: 0 12px 8px 12px;
-  position: absolute;
-  overflow: scroll;
-
-  .ant-typography {
-    color: white;
-  }
-`
-
-const StyledInput = styled(Input)`
-  width: 340px;
-  font-size: 16px;
-  position: fixed;
-  bottom: 10px;
-`
+import {Container, List, ListItem, Stack, TextField} from "@mui/material";
+import {ChatMessage} from "../api";
+import _ from 'lodash'
 
 export function Chat() {
-    const [inputValue, setInputValue] = useState('');
-    const container = useRef<HTMLDivElement>(null);
-    const messageBox = useRef<HTMLDivElement>(null);
-    const handleChatPosition = useCallback(() => {
-        if (!container.current || !messageBox.current) {
-            return;
+    const session = useSession()
+    const [message, setMessage] = useState('');
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const messageBox = useRef<HTMLUListElement>(null);
+
+    const sendMessage = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key === 'Enter' && message) {
+            const chat: ChatMessage = {name: session.user.name, text: message}
+            setMessages(prevMessages => [...prevMessages, chat])
+            setMessage('');
+            session.api.sendChatMessage(chat)
         }
+    };
 
-        const input = document.getElementsByClassName('ant-input')[0];
-        const {y: containerY} = container.current.getBoundingClientRect();
-        const {y: inputY} = input.getBoundingClientRect();
-        messageBox.current.style.height = `${inputY - containerY}px`;
-        messageBox.current.style.top = `${containerY}px`;
-    }, [])
-    const state = useSelector((state: RootState) => state)
-    const {chat} = state.room
-    const nickname = useSession().user.name
-
-    const handleSendMessage = useCallback((e) => {
-        const chat: ChatRtcData = {name: nickname, message: e.target.value}
-        addChat(chat)
-        SnakeMultiplay.broadcast<ChatRtcData>(CLIENT_MESSAGE_TYPE.CHAT, chat)
-        setInputValue('');
-    }, []);
-
-    const handleInputValue = useCallback(e => {
-        setInputValue(e.target.value);
+    useEffect(() => {
+        session.api.subscribeChatMessage(m => setMessages(prevMessages => [...prevMessages, m]))
     }, [])
 
     useEffect(() => {
-        handleChatPosition();
-    }, [])
+        messageBox?.current?.scroll(0, messageBox?.current?.scrollHeight);
+    }, [messages])
 
-    useEffect(() => {
-        if (!messageBox.current) {
-            return;
-        }
-        messageBox.current.scroll(0, messageBox.current.scrollHeight);
-    }, [chat])
-
-    return <ChatContainer ref={container}>
-        <MessageBox ref={messageBox}>
-            {
-                chat.map((v) => {
-                    return <Message name={v.name} message={v.message}/>
-                })
-            }
-        </MessageBox>
-        <StyledInput value={inputValue} onPressEnter={_.debounce(handleSendMessage, 10)} onChange={handleInputValue}/>
-    </ChatContainer>
+    return <Container sx={{height: 'inherit'}}>
+        <Stack sx={{height: 'inherit'}}>
+            <List
+                dense
+                ref={messageBox}
+                sx={{overflowY: 'scroll', backgroundColor: 'rgba(0, 0, 0, 0.5)', height: '100%'}}>
+                {messages.map((v, idx) => {
+                    if (v.name === session.user.name) {
+                        return <ListItem dense key={idx} sx={{display: 'block', textAlign: 'right'}}>{v.text}</ListItem>
+                    }
+                    return <ListItem dense key={idx}>{v.name} : {v.text}</ListItem>
+                })}
+            </List>
+            <TextField
+                sx={{width: '100%', alignSelf: 'flex-end'}}
+                placeholder="send message"
+                variant="filled"
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                onKeyDown={_.debounce(sendMessage, 10)}
+            />
+        </Stack>
+    </Container>
 }
 
 export default Chat;

@@ -1,5 +1,7 @@
-import {Api, CreateRoomResult, JoinRoomResult, RoomModel, SignInRequest, SignInResult} from "./index";
+import {Api, ChatMessage, CreateRoomResult, JoinRoomResult, RoomModel, SignInRequest, SignInResult} from "./index";
 import SnakeMultiplay from "../snake/multiplay/SnakeMultiplay";
+import {ChatRtcData} from "../snake/type/rtc";
+import {CLIENT_MESSAGE_TYPE} from "../snake/Constants";
 
 type Message = { type: string, data: any }
 
@@ -21,6 +23,17 @@ export class DefaultApi implements Api {
                 subscriber.forEach(callback => callback(message))
             }
         }
+    }
+
+    subscribeChatMessage(subscriber: (chat: ChatMessage) => void) {
+        SnakeMultiplay.consumeChatMessage = (message) => subscriber({name: message.name, text: message.message})
+    }
+
+    sendChatMessage(chat: ChatMessage) {
+        SnakeMultiplay.broadcast<ChatRtcData>(CLIENT_MESSAGE_TYPE.CHAT, {
+            name: chat.name,
+            message: chat.text
+        })
     }
 
     joinRoom(roomNumber: number): Promise<JoinRoomResult> {

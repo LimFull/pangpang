@@ -1,6 +1,5 @@
 import {connectionKey, messageObject, MultiPlay, MultiPlayInterface} from "../../multiplay/MultiPlay";
 import {CLIENT_MESSAGE_TYPE, SERVER_MESSAGE_TYPE} from "../Constants";
-import * as roomActions from "../reducers/room";
 import * as multiActions from '../reducers/multi';
 import {bind} from "../../store";
 import {
@@ -12,12 +11,14 @@ import {
 } from "../type/socket";
 import {ChatRtcData} from "../type/rtc";
 
-const {setRoomNumber, setRooms, addChat} = bind(roomActions)
 const {setId} = bind(multiActions);
 
 export class SnakeMultiplay extends MultiPlay implements MultiPlayInterface {
     constructor() {
         super();
+    }
+
+    consumeChatMessage: (message: ChatRtcData) => void = () => {
     }
 
     onSocketMessage = (message: MessageEvent) => {
@@ -65,10 +66,8 @@ export class SnakeMultiplay extends MultiPlay implements MultiPlayInterface {
 
     onMessage = (message: MessageEvent) => {
         const msg: messageObject = this.toObjectMessage(message);
-        console.log("message", msg);
         if (msg.type === CLIENT_MESSAGE_TYPE.CHAT) {
-            const data: ChatRtcData = msg.data
-            addChat(data)
+            this.consumeChatMessage(msg.data)
         }
 
         // SnakeObserverObject 들에게 보냄

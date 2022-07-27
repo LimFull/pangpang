@@ -7,6 +7,10 @@ export interface Api {
     createRoom(title: string): Promise<CreateRoomResult>
 
     joinRoom(roomNumber: number): Promise<JoinRoomResult>
+
+    subscribeChatMessage(subscriber: (chat: ChatMessage) => void)
+
+    sendChatMessage(chat: ChatMessage)
 }
 
 export interface SignInRequest {
@@ -29,4 +33,9 @@ export interface CreateRoomResult {
 
 export interface JoinRoomResult {
     roomNumber: number;
+}
+
+export interface ChatMessage {
+    name: string;
+    text: string;
 }

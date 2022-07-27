@@ -1,8 +1,7 @@
 import styled from "styled-components";
-import UserCard from "./UserCard";
-import {Button} from "antd";
 import Chat from "./Chat";
 import {useCallback, useState} from "react";
+import {Box, Stack} from "@mui/material";
 
 const Container = styled.div`
   display: flex;
@@ -45,19 +44,21 @@ export function Room() {
         setIsReady((prev) => !prev)
     }, [])
 
-    return <Container>
-        <CardContainer>
-            <UserCard color={'blue'} name={'default_name'}/>
-            <UserCard color={'blue'} name={'default_name'}/>
-            <UserCard color={'blue'} name={'default_name'}/>
-            <UserCard color={'blue'} name={'default_name'}/>
-        </CardContainer>
-        <ButtonContainer>
-            <Button>Exit</Button>
-            <Button type={isReady ? 'default' : 'primary'} onClick={handleReady}>{isReady ? "Cancel" : "Ready"}</Button>
-        </ButtonContainer>
-        <Chat/>
-    </Container>
+    return <Stack sx={{height: '90vh'}}>
+        <Box sx={{width: '100%', margin: '50px 0 50px 0', height: '100%', alignSelf: 'flex-end'}}>
+            <Chat/>
+        </Box>
+        {/*<CardContainer>*/}
+        {/*    <UserCard color={'blue'} name={'default_name'}/>*/}
+        {/*    <UserCard color={'blue'} name={'default_name'}/>*/}
+        {/*    <UserCard color={'blue'} name={'default_name'}/>*/}
+        {/*    <UserCard color={'blue'} name={'default_name'}/>*/}
+        {/*</CardContainer>*/}
+        {/*<ButtonContainer>*/}
+        {/*    <Button>Exit</Button>*/}
+        {/*    <Button type={isReady ? 'default' : 'primary'} onClick={handleReady}>{isReady ? "Cancel" : "Ready"}</Button>*/}
+        {/*</ButtonContainer>*/}
+    </Stack>
 
 }
 
