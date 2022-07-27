@@ -4,6 +4,8 @@ export interface Api {
 
     getRooms(): Promise<RoomModel[]>
 
+    createRoom(title: string): Promise<CreateRoomResult>
+
     joinRoom(roomNumber: number): Promise<JoinRoomResult>
 }
 

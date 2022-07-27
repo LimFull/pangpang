@@ -6,7 +6,7 @@ import {SET_NICKNAME} from "../snake/reducers/account";
 import styled from "styled-components";
 import {RootState} from "../store";
 import {SignIn} from "./SignIn";
-import {DefaultApi} from "../apis/DefaultApi";
+import {DefaultApi} from "../api/DefaultApi";
 
 const Container = styled.div`
   display: flex;

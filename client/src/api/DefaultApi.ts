@@ -1,4 +1,4 @@
-import {Api, JoinRoomResult, RoomModel, SignInRequest, SignInResult} from "./Api";
+import {Api, CreateRoomResult, JoinRoomResult, RoomModel, SignInRequest, SignInResult} from "./index";
 import SnakeMultiplay from "../snake/multiplay/SnakeMultiplay";
 
 type Message = { type: string, data: any }
@@ -33,6 +33,10 @@ export class DefaultApi implements Api {
 
     getRooms(): Promise<RoomModel[]> {
         return this.awaitMessage<{ rooms: RoomModel[] }>('GET_ROOMS').then(data => data.rooms)
+    }
+
+    createRoom(title: string): Promise<CreateRoomResult> {
+        return this.awaitMessage('CREATE_ROOM', {title: title})
     }
 
     private awaitMessage<R>(type: string, data?: any): Promise<R> {

@@ -8,10 +8,7 @@ import {
     CreateAnswerResponseData,
     CreateIdResponseData,
     CreateOfferResponseData,
-    CreateRoomResponseData,
-    GetAnswerResponseData,
-    GetRoomsResponseData,
-    JoinRoomResponseData
+    GetAnswerResponseData
 } from "../type/socket";
 import {ChatRtcData} from "../type/rtc";
 
@@ -23,10 +20,6 @@ export class SnakeMultiplay extends MultiPlay implements MultiPlayInterface {
         super();
     }
 
-    createRoom(title: string) {
-        this.sendSocketMessage(SERVER_MESSAGE_TYPE.CREATE_ROOM, {title})
-    }
-
     onSocketMessage = (message: MessageEvent) => {
         const msg: messageObject = this.toObjectMessage(message)
         console.log('onSocketMessage', msg.type, msg.data)
@@ -34,15 +27,6 @@ export class SnakeMultiplay extends MultiPlay implements MultiPlayInterface {
             const data: CreateIdResponseData = msg.data;
             this.id = data.id;
             setId(this.id);
-        } else if (msg.type === SERVER_MESSAGE_TYPE.CREATE_ROOM) {
-            const data: CreateRoomResponseData = msg.data;
-            setRoomNumber(data.roomNumber);
-        } else if (msg.type === SERVER_MESSAGE_TYPE.GET_ROOMS) {
-            const data: GetRoomsResponseData = msg.data;
-            setRooms(data.rooms);
-        } else if (msg.type === SERVER_MESSAGE_TYPE.JOIN_ROOM) {
-            const data: JoinRoomResponseData = msg.data;
-            setRoomNumber(data.roomNumber);
         } else if (msg.type === SERVER_MESSAGE_TYPE.INIT_CONNECTION) {
             const data: CreateOfferResponseData = msg.data;
             this.initConnection(this.createKey(data.id) as connectionKey)

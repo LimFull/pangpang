@@ -1,5 +1,5 @@
 import {createContext, useContext} from "react";
-import {Api} from "../apis/Api";
+import {Api} from "../api";
 
 export interface User {
     id: number;

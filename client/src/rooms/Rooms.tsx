@@ -1,7 +1,7 @@
 import CreateRoomModal from "./CreateRoomModal";
 import {useCallback, useState} from "react";
 import {useNavigate} from "react-router";
-import {RoomModel} from "../apis/Api";
+import {RoomModel} from "../api";
 import {useSession} from "../session";
 import {useStateWithInitializer} from "../util";
 import {Button, Divider, Grid, List, ListItem, ListItemText, Stack} from "@mui/material";
@@ -21,6 +21,11 @@ export default function Rooms() {
         navigate(`/rooms/${roomNumber}`)
     })
 
+    const handleCreateRoom = useCallback(async (title: string) => {
+        const data = await session.api.createRoom(title)
+        navigate(`/rooms/${data.roomNumber}`)
+    }, []);
+
     const handleShowModal = useCallback(async () => {
         setShowModal(true);
     }, []);
@@ -31,7 +36,7 @@ export default function Rooms() {
 
     return <Stack>
         <Button color='primary' onClick={handleShowModal}>방 만들기</Button>
-        <CreateRoomModal visible={showModal} onCancel={handleCancelModal}/>
+        <CreateRoomModal visible={showModal} onCreate={handleCreateRoom} onCancel={handleCancelModal}/>
         <Grid container>
             <Grid item xs={1} xl={1} sm={1} md={1} lg={1}/>
             <Grid item xs={10} xl={10} sm={10} md={10} lg={10}>
@@ -59,6 +64,5 @@ export default function Rooms() {
             </Grid>
             <Grid item xs={1} xl={1} sm={1} md={1} lg={1}/>
         </Grid>
-
     </Stack>
 }
