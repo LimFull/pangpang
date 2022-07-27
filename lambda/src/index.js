@@ -13,199 +13,170 @@ exports.handler = async (event) => {
         case '$connect':
             break
         case '$disconnect':
-            console.log('[handler]', 'Disconnection occurred')
-
-            const result = await ddb.scan({
-                TableName: 'rtc-connection',
-                FilterExpression: 'connectionId = :connectionId',
-                ExpressionAttributeValues: {":connectionId": {S: connectionId}},
-            }, function (err, data) {
-                if (err) console.log(err);
-                else return data
-            }).promise();
-
-            result.Items.forEach(async row => {
-                console.log(row)
-                await ddb.deleteItem({
-                    TableName: 'rtc-connection',
-                    Key: {
-                        roomNumber: {N: row.roomNumber.N},
-                        connectionId: {S: connectionId}
-                    }
-                }, function (err, data) {
-                    if (err) console.log(err);
-                    else return data
-                }).promise();
-            })
-
+            await handleDisconnect(connectionId)
             break
         case '$default':
-            console.log('[handler]', 'Received message:', event.body)
-            await replyToMessage(
-                await handleMessageData(
-                    JSON.parse(event.body),
-                    connectionId
-                ),
-                connectionId
-            )
+            await handleMessageData(JSON.parse(event.body), connectionId)
             break
         default:
             console.log('[handler]', 'Received unknown route:', route)
     }
+    return {statusCode: 200}
+}
 
-    return {
-        statusCode: 200
+async function handleDisconnect(connectionId) {
+    const result = await ddb.scan({
+        TableName: 'rtc-connection',
+        FilterExpression: 'connectionId = :connectionId',
+        ExpressionAttributeValues: {":connectionId": {S: connectionId}},
+    }, handleAwsOutput).promise();
+
+    for (const row of result.Items) {
+        await ddb.deleteItem({
+            TableName: 'rtc-connection',
+            Key: {
+                roomNumber: {N: row.roomNumber.N},
+                connectionId: {S: connectionId}
+            }
+        }, handleAwsOutput).promise();
     }
+
 }
 
 async function handleMessageData(message, connectionId) {
     console.log('handleMessageData', message)
     switch (message.type) {
-        case 'SIGN_IN': {
-            const id = Math.floor(Math.random() * 100000)
-            await ddb.putItem({
-                TableName: 'user',
-                Item: {
-                    id: {N: `${id}`},
-                    socketId: {S: connectionId},
-                    name: {S: message.data.name},
-                }
-            }).promise()
-            return {
-                type: message.type,
-                data: {id: id}
-            }
-        }
-        case 'CREATE_ROOM': {
-            const roomNumber = `${Math.floor(Math.random() * 100000)}`
-            await ddb.putItem({
-                TableName: 'room',
-                Item: {
-                    roomNumber: {N: roomNumber},
-                    title: {S: message.data.title}
-                }
-            }).promise()
-            await ddb.putItem({
-                TableName: 'rtc-connection',
-                Item: {
-                    connectionId: {S: connectionId},
-                    roomNumber: {N: roomNumber}
-                }
-            }).promise()
-            return {type: message.type, data: {roomNumber: roomNumber}}
-        }
-
-        case 'GET_ROOMS': {
-            const result = await ddb.scan({
-                TableName: 'room'
-            }, function (err, data) {
-                if (err) console.log(err);
-                else return data
-            }).promise();
-            await replyToMessage({type: 'CREATE_ID', data: {id: connectionId}}, connectionId)
-            return {
-                type: message.type,
-                data: {
-                    rooms: result.Items.map(row => {
-                        return {
-                            roomNumber: row.roomNumber.N,
-                            title: row.title.S,
-                            member: 0
-                        }
-                    })
-                }
-            }
-        }
-
-        case 'JOIN_ROOM': {
-            const result = await ddb.scan({
-                TableName: 'rtc-connection',
-                FilterExpression: 'roomNumber = :joinRoomNumber',
-                ExpressionAttributeValues: {":joinRoomNumber": {N: message.data.roomNumber}},
-            }, function (err, data) {
-                if (err) console.log(err);
-                else return data
-            }).promise();
-
-            console.log('JOIN_ROOM', result);
-
-            result.Items.forEach(async row => {
-                if (row.connectionId.S !== connectionId) {
-                    replyToMessage(
-                        {type: 'INIT_CONNECTION', data: {id: connectionId}},
-                        row.connectionId.S
-                    )
-                        .catch(e => console.log('INIT_CONNECTION_FAIL', e, row.connectionId));
-                }
-            })
-
-            await ddb.putItem({
-                TableName: 'rtc-connection',
-                Item: {
-                    connectionId: {S: connectionId},
-                    roomNumber: {N: message.data.roomNumber}
-                }
-            }).promise()
-
-            return {type: message.type, data: {roomNumber: message.data.roomNumber}}
-        }
-
-        case 'CREATE_OFFER': {
-            await replyToMessage(
-                {
-                    type: 'CREATE_ANSWER',
-                    data: {
-                        fromId: connectionId,
-                        sdp: message.data.sdp
-                    }
-                },
-                message.data.toId
-            )
-            return
-        }
-
-        case 'CREATE_ANSWER': {
-            await replyToMessage(
-                {
-                    type: 'GET_ANSWER',
-                    data: {
-                        fromId: connectionId,
-                        sdp: message.data.sdp
-                    }
-                },
-                message.data.toId
-            )
-            return
-        }
-
-        case 'CANDIDATE': {
-            await replyToMessage(
-                {
-                    type: 'CANDIDATE',
-                    data: {
-                        fromId: connectionId,
-                        candidate: message.data.candidate
-                    }
-                },
-                message.data.toId
-            )
-            return
-        }
-
-
+        case 'SIGN_IN':
+            return await signIn(message, connectionId);
+        case 'CREATE_ROOM':
+            return await createRoom(message, connectionId);
+        case 'GET_ROOMS':
+            return await getRooms(message, connectionId);
+        case 'JOIN_ROOM':
+            return await joinRoom(message, connectionId)
+        case 'CREATE_OFFER':
+            return await createOffer(message, connectionId)
+        case 'CREATE_ANSWER':
+            return await createAnswer(message, connectionId)
+        case 'CANDIDATE':
+            return await candidate(message, connectionId)
         default:
-            return {type: message.type, error: 'unknown data type'}
+            await pushMessage(connectionId, message.type, {error: 'unknown data type'})
     }
 }
 
-async function replyToMessage(response, connectionId) {
-    console.log('send response', connectionId, response);
-    if (response) {
-        return api.postToConnection(
-            {
-                ConnectionId: connectionId,
-                Data: Buffer.from(JSON.stringify(response))
-            }
-        ).promise()
+async function signIn({type, data}, connectionId) {
+    const id = Math.floor(Math.random() * 100000)
+    await ddb.putItem({
+        TableName: 'user',
+        Item: {
+            id: {N: `${id}`},
+            socketId: {S: connectionId},
+            name: {S: data.name},
+        }
+    }).promise()
+    await pushMessage(connectionId, type, {id: id, connectionId: connectionId})
+}
+
+async function createRoom({type, data}, connectionId) {
+    const roomNumber = `${Math.floor(Math.random() * 100000)}`
+
+    await ddb.putItem({
+        TableName: 'room',
+        Item: {
+            roomNumber: {N: roomNumber},
+            title: {S: data.title}
+        }
+    }).promise()
+
+    await ddb.putItem({
+        TableName: 'rtc-connection',
+        Item: {
+            connectionId: {S: connectionId},
+            roomNumber: {N: roomNumber}
+        }
+    }).promise()
+
+    await pushMessage(connectionId, type, {roomNumber: roomNumber})
+}
+
+async function getRooms({type, data}, connectionId) {
+    const result = await ddb.scan({TableName: 'room'}, handleAwsOutput).promise();
+    await pushMessage(connectionId, 'CREATE_ID', {id: connectionId})
+    await pushMessage(connectionId, type, {
+            rooms: result.Items.map(row => ({
+                roomNumber: row.roomNumber.N,
+                title: row.title.S,
+                member: 0
+            }))
+        }
+    )
+}
+
+async function joinRoom({type, data}, connectionId) {
+    const result = await ddb.scan({
+        TableName: 'rtc-connection',
+        FilterExpression: 'roomNumber = :joinRoomNumber',
+        ExpressionAttributeValues: {":joinRoomNumber": {N: data.roomNumber}},
+    }, handleAwsOutput).promise();
+
+    for (const row of result.Items) {
+        if (row.connectionId.S !== connectionId) {
+            await pushMessage(
+                row.connectionId.S,
+                'INIT_CONNECTION',
+                {id: connectionId},
+            ).catch(e => console.log('INIT_CONNECTION_FAIL', e, row.connectionId));
+        }
     }
+
+    await ddb.putItem({
+        TableName: 'rtc-connection',
+        Item: {
+            connectionId: {S: connectionId},
+            roomNumber: {N: data.roomNumber}
+        }
+    }).promise()
+
+    await pushMessage(connectionId, type, {roomNumber: data.roomNumber})
+}
+
+async function createOffer({type, data}, connectionId) {
+    await pushMessage(data.toId, 'CREATE_ANSWER', {
+        fromId: connectionId,
+        sdp: data.sdp
+    })
+}
+
+async function createAnswer({type, data}, connectionId) {
+    await pushMessage(data.toId, 'GET_ANSWER', {
+        fromId: connectionId,
+        sdp: data.sdp
+    })
+}
+
+async function candidate({type, data}, connectionId) {
+    await pushMessage(data.toId, 'CANDIDATE', {
+        fromId: connectionId,
+        sdp: data.candidate
+    })
+}
+
+async function pushMessage(
+    targetConnectionId,
+    type,
+    data
+) {
+    console.log(`pushMessage to ${targetConnectionId}`, type, data)
+    return api.postToConnection(
+        {
+            ConnectionId: targetConnectionId,
+            Data: Buffer.from(JSON.stringify({type: type, data: data}))
+        }
+    ).promise()
+}
+
+function handleAwsOutput(err, data) {
+    if (err) console.error(err);
+    else return data
 }
