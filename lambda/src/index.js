@@ -36,6 +36,8 @@ async function handleDisconnect(connectionId) {
             TableName: 'user',
             Key: {id: {N: user.id.N}, connectionId: {S: connectionId}}
         }, handleAwsOutput).promise();
+
+        await deleteRoomUser(user.id.N, user.currentRoomId.N);
     }
 }
 
@@ -50,6 +52,8 @@ async function handleMessageData(message, connectionId) {
             return await getRooms(message, connectionId);
         case 'JOIN_ROOM':
             return await joinRoom(message, connectionId);
+        case 'EXIT_ROOM':
+            return await exitRoom(message, connectionId);
         case 'CREATE_OFFER':
             return await createOffer(message, connectionId);
         case 'CREATE_ANSWER':
@@ -75,26 +79,26 @@ async function signIn({type, data}, connectionId) {
 }
 
 async function createRoom({type, data, uid}, connectionId) {
-    const roomNumber = `${Math.floor(Math.random() * 100000)}`
+    const roomId = `${Math.floor(Math.random() * 100000)}`
 
     await ddb.putItem({
         TableName: 'room',
-        Item: {roomNumber: {N: roomNumber}, title: {S: data.title}}
+        Item: {id: {N: roomId}, title: {S: data.title}}
     }).promise();
 
     await ddb.putItem({
         TableName: 'room-user',
-        Item: {uid: {N: uid}, roomId: {N: roomNumber}, connectionId: {S: connectionId}}
+        Item: {uid: {N: `${uid}`}, roomId: {N: roomId}, connectionId: {S: connectionId}}
     }).promise();
 
-    await pushMessage(connectionId, type, {roomNumber: roomNumber});
+    await pushMessage(connectionId, type, {roomNumber: roomId});
 }
 
 async function getRooms({type, data}, connectionId) {
     const result = await ddb.scan({TableName: 'room'}, handleAwsOutput).promise();
     await pushMessage(connectionId, type, {
             rooms: result.Items.map(row => ({
-                roomNumber: row.roomNumber.N,
+                roomNumber: row.id.N,
                 title: row.title.S,
                 member: 0
             }))
@@ -103,27 +107,28 @@ async function getRooms({type, data}, connectionId) {
 }
 
 async function joinRoom({type, data, uid}, connectionId) {
-    const result = await ddb.scan({
-        TableName: 'room-user',
-        FilterExpression: 'roomId = :joinRoomId',
-        ExpressionAttributeValues: {":joinRoomId": {N: data.roomNumber}},
-    }, handleAwsOutput).promise();
+    const user = await getUser(uid, connectionId);
+    if (user.currentRoomId.N) {
+        await deleteRoomUser(uid, user.currentRoomId.N)
+    }
 
-    for (const row of result.Items) {
-        if (row.connectionId.S !== connectionId) {
+    const roomUsers = await getRoomUsersByRoomId(data.roomNumber).then(result => result.Items)
+
+    for (const roomUser of roomUsers) {
+        if (roomUser.connectionId.S !== connectionId) {
             await pushMessage(
-                row.connectionId.S,
+                roomUser.connectionId.S,
                 'INIT_CONNECTION',
                 {id: connectionId},
-            ).catch(e => console.log('INIT_CONNECTION_FAIL', e, row.connectionId));
+            ).catch(e => console.log('INIT_CONNECTION_FAIL', e, roomUser.connectionId));
         }
     }
 
     await ddb.updateItem({
         TableName: 'user',
         Key: {"id": {N: `${uid}`}, "connectionId": {S: connectionId}},
-        UpdateExpression: "SET currentRoomNumber = :currentRoomNumber",
-        ExpressionAttributeValues: {":currentRoomNumber": {N: data.roomNumber}},
+        UpdateExpression: "SET currentRoomId = :currentRoomId",
+        ExpressionAttributeValues: {":currentRoomId": {N: data.roomNumber}},
     }).promise();
 
     await ddb.putItem({
@@ -132,6 +137,18 @@ async function joinRoom({type, data, uid}, connectionId) {
     }).promise()
 
     await pushMessage(connectionId, type, {roomNumber: data.roomNumber})
+}
+
+async function exitRoom({type, data, uid}, connectionId) {
+    const user = await getUser(uid, connectionId);
+
+    await deleteRoomUser(uid, user.currentRoomId.N)
+
+    await ddb.updateItem({
+        TableName: 'user',
+        Key: {"id": {N: `${uid}`}, "connectionId": {S: connectionId}},
+        UpdateExpression: "REMOVE currentRoomId"
+    }).promise();
 }
 
 async function createOffer({type, data}, connectionId) {
@@ -172,4 +189,35 @@ async function pushMessage(
 function handleAwsOutput(err, data) {
     if (err) console.error(err);
     else return data
+}
+
+async function getUser(uid, connectionId) {
+    return ddb.getItem({
+        TableName: 'user',
+        Key: {"id": {N: `${uid}`}, "connectionId": {S: connectionId}},
+    }).promise().then(result => result.Item);
+}
+
+async function getRoomUsersByRoomId(roomId) {
+    return ddb.scan({
+        TableName: 'room-user',
+        FilterExpression: 'roomId = :roomId',
+        ExpressionAttributeValues: {":roomId": {N: roomId}},
+    }, handleAwsOutput).promise()
+}
+
+async function deleteRoomUser(uid, roomId) {
+    await ddb.deleteItem({
+        TableName: 'room-user',
+        Key: {uid: {N: `${uid}`}, roomId: {N: roomId}}
+    }, handleAwsOutput).promise();
+
+    const roomUsers = await getRoomUsersByRoomId(roomId)
+
+    if (roomUsers.Count === 0) {
+        ddb.deleteItem({
+            TableName: 'room',
+            Key: {id: {N: `${roomId}`}}
+        })
+    }
 }
