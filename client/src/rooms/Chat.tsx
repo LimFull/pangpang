@@ -1,6 +1,6 @@
 import React, {useEffect, useRef, useState} from "react";
 import {useSession} from "../session";
-import {Container, List, ListItem, Stack, TextField} from "@mui/material";
+import {List, ListItem, Stack, TextField} from "@mui/material";
 import {ChatMessage} from "../api";
 import _ from 'lodash'
 
@@ -27,29 +27,30 @@ export function Chat() {
         messageBox?.current?.scroll(0, messageBox?.current?.scrollHeight);
     }, [messages])
 
-    return <Container sx={{height: 'inherit'}}>
-        <Stack sx={{height: 'inherit'}}>
-            <List
-                dense
-                ref={messageBox}
-                sx={{overflowY: 'scroll', backgroundColor: 'rgba(0, 0, 0, 0.5)', height: '100%'}}>
-                {messages.map((v, idx) => {
-                    if (v.name === session.user.name) {
-                        return <ListItem dense key={idx} sx={{display: 'block', textAlign: 'right'}}>{v.text}</ListItem>
-                    }
-                    return <ListItem dense key={idx}>{v.name} : {v.text}</ListItem>
-                })}
-            </List>
-            <TextField
-                sx={{width: '100%', alignSelf: 'flex-end'}}
-                placeholder="send message"
-                variant="filled"
-                value={message}
-                onChange={e => setMessage(e.target.value)}
-                onKeyDown={_.debounce(sendMessage, 10)}
-            />
-        </Stack>
-    </Container>
+    return <Stack sx={{height: 'inherit'}}>
+        <List
+            dense
+            ref={messageBox}
+            sx={{overflowY: 'scroll', backgroundColor: 'rgba(0,0,0,0.75)', height: '100%'}}>
+            {messages.map((v, idx) => (
+                <ListItem
+                    sx={{paddingTop: '1px', paddingBottom: '1px', color: 'rgb(255,255,255)'}}
+                    key={idx}>
+                    {v.name} : {v.text}
+                </ListItem>
+            ))}
+        </List>
+        <TextField
+            sx={{width: '100%', alignSelf: 'flex-end'}}
+            hiddenLabel
+            placeholder="send message"
+            variant="filled"
+            size='small'
+            value={message}
+            onChange={e => setMessage(e.target.value)}
+            onKeyDown={_.debounce(sendMessage, 10)}
+        />
+    </Stack>
 }
 
 export default Chat;
