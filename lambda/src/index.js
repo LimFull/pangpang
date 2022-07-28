@@ -31,26 +31,10 @@ async function handleDisconnect(connectionId) {
         ExpressionAttributeValues: {":connectionId": {S: connectionId}},
     }, handleAwsOutput).promise();
 
-    for (const row of users.Items) {
+    for (const user of users.Items) {
         await ddb.deleteItem({
             TableName: 'user',
-            Key: {id: {N: row.id.N}, connectionId: {S: connectionId}}
-        }, handleAwsOutput).promise();
-    }
-    
-    const result = await ddb.scan({
-        TableName: 'rtc-connection',
-        FilterExpression: 'connectionId = :connectionId',
-        ExpressionAttributeValues: {":connectionId": {S: connectionId}},
-    }, handleAwsOutput).promise();
-
-    for (const row of result.Items) {
-        await ddb.deleteItem({
-            TableName: 'rtc-connection',
-            Key: {
-                roomNumber: {N: row.roomNumber.N},
-                connectionId: {S: connectionId}
-            }
+            Key: {id: {N: user.id.N}, connectionId: {S: connectionId}}
         }, handleAwsOutput).promise();
     }
 }
@@ -90,26 +74,20 @@ async function signIn({type, data}, connectionId) {
     await pushMessage(connectionId, type, {id: id, connectionId: connectionId})
 }
 
-async function createRoom({type, data}, connectionId) {
+async function createRoom({type, data, uid}, connectionId) {
     const roomNumber = `${Math.floor(Math.random() * 100000)}`
 
     await ddb.putItem({
         TableName: 'room',
-        Item: {
-            roomNumber: {N: roomNumber},
-            title: {S: data.title}
-        }
-    }).promise()
+        Item: {roomNumber: {N: roomNumber}, title: {S: data.title}}
+    }).promise();
 
     await ddb.putItem({
-        TableName: 'rtc-connection',
-        Item: {
-            connectionId: {S: connectionId},
-            roomNumber: {N: roomNumber}
-        }
-    }).promise()
+        TableName: 'room-user',
+        Item: {uid: {N: uid}, roomId: {N: roomNumber}, connectionId: {S: connectionId}}
+    }).promise();
 
-    await pushMessage(connectionId, type, {roomNumber: roomNumber})
+    await pushMessage(connectionId, type, {roomNumber: roomNumber});
 }
 
 async function getRooms({type, data}, connectionId) {
@@ -126,9 +104,9 @@ async function getRooms({type, data}, connectionId) {
 
 async function joinRoom({type, data, uid}, connectionId) {
     const result = await ddb.scan({
-        TableName: 'rtc-connection',
-        FilterExpression: 'roomNumber = :joinRoomNumber',
-        ExpressionAttributeValues: {":joinRoomNumber": {N: data.roomNumber}},
+        TableName: 'room-user',
+        FilterExpression: 'roomId = :joinRoomId',
+        ExpressionAttributeValues: {":joinRoomId": {N: data.roomNumber}},
     }, handleAwsOutput).promise();
 
     for (const row of result.Items) {
@@ -149,11 +127,8 @@ async function joinRoom({type, data, uid}, connectionId) {
     }).promise();
 
     await ddb.putItem({
-        TableName: 'rtc-connection',
-        Item: {
-            connectionId: {S: connectionId},
-            roomNumber: {N: data.roomNumber}
-        }
+        TableName: 'room-user',
+        Item: {uid: {N: `${uid}`}, roomId: {N: data.roomNumber}, connectionId: {S: connectionId}}
     }).promise()
 
     await pushMessage(connectionId, type, {roomNumber: data.roomNumber})
