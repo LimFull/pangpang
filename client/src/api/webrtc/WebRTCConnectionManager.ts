@@ -165,14 +165,11 @@ export default class WebRTCConnectionManager {
         pc.onicecandidate = (e) => {
             if (e.candidate) {
                 this.connections[key].candidate = e.candidate
+                this.sendSocketMessage(SERVER_MESSAGE_TYPE.CANDIDATE, {
+                    toId: this.getToIdFromKey(key),
+                    candidate: this.connections[key].candidate
+                })
             }
-            if (e.candidate) {
-                return;
-            }
-            this.sendSocketMessage(SERVER_MESSAGE_TYPE.CANDIDATE, {
-                toId: this.getToIdFromKey(key),
-                candidate: this.connections[key].candidate
-            })
         }
 
         this.connections[key].pc = pc;
