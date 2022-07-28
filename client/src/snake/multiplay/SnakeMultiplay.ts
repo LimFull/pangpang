@@ -1,14 +1,15 @@
 import {connectionKey, messageObject, MultiPlay, MultiPlayInterface} from "../../multiplay/MultiPlay";
 import {CLIENT_MESSAGE_TYPE, SERVER_MESSAGE_TYPE} from "../Constants";
 import {CandidateData, CreateAnswerResponseData, CreateOfferResponseData, GetAnswerResponseData} from "../type/socket";
-import {ChatRtcData} from "../type/rtc";
+import {ChatRtcData, ConnectionStateData, RtcResponse} from "../type/rtc";
+import store from "../../store";
 
 export class SnakeMultiplay extends MultiPlay implements MultiPlayInterface {
     constructor() {
         super();
     }
 
-    consumeChatMessage: (message: ChatRtcData) => void = () => {
+    consumeChatMessage: (message: ChatRtcData | ConnectionStateData) => void = () => {
     }
 
     onSocketMessage = (message: MessageEvent) => {
@@ -39,20 +40,38 @@ export class SnakeMultiplay extends MultiPlay implements MultiPlayInterface {
     }
 
     lossConnection(key: string): void {
+        const data: ConnectionStateData = {
+            name: this.connections[key].name,
+            connectionState: 'CANCEL',
+        }
+        this.consumeChatMessage(data)
         super.lossConnection(key);
-        // TODO: 나갔습니다.
     }
 
     onOpen(data: RTCDataChannel): () => void {
         return () => {
-            console.log("hello send");
-            this.broadcast(CLIENT_MESSAGE_TYPE.OPEN, "HELLO!!!!!!")
+            const stateData: ConnectionStateData = {
+                name: store.getState().account.nickname,
+                connectionState: "OPEN",
+            }
+
+
+            this.broadcast(CLIENT_MESSAGE_TYPE.OPEN, stateData)
         };
     }
 
     onMessage = (message: MessageEvent) => {
         const msg: messageObject = this.toObjectMessage(message);
         if (msg.type === CLIENT_MESSAGE_TYPE.CHAT) {
+            this.consumeChatMessage(msg.data)
+        } else if (msg.type === CLIENT_MESSAGE_TYPE.OPEN) {
+            const key: connectionKey | null = this.getKeyfromId(msg.id);
+            const data: ConnectionStateData = msg.data;
+            if (key) {
+                this.connections[key].name = data.name
+            }
+            this.consumeChatMessage(msg.data)
+        } else if (msg.type === CLIENT_MESSAGE_TYPE.CLOSE) {
             this.consumeChatMessage(msg.data)
         }
 

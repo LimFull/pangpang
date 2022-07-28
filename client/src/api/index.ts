@@ -1,3 +1,5 @@
+import {ChatRtcData, ConnectionStateData} from "../snake/type/rtc";
+
 export interface Api {
 
     signIn(request: SignInRequest): Promise<SignInResult>
@@ -8,9 +10,9 @@ export interface Api {
 
     joinRoom(roomNumber: number): Promise<JoinRoomResult>
 
-    subscribeChatMessage(subscriber: (chat: ChatMessage) => void)
+    subscribeChatMessage(subscriber: (chat: ChatRtcData | ConnectionStateData) => void)
 
-    sendChatMessage(chat: ChatMessage)
+    sendChatMessage(chat: ChatRtcData)
 }
 
 export interface SignInRequest {

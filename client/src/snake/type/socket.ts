@@ -21,20 +21,20 @@ export interface JoinRoomResponseData {
 }
 
 export interface CreateOfferResponseData {
-    id: number
+    id: string
 }
 
 export interface CreateAnswerResponseData {
-    fromId: number,
+    fromId: string,
     sdp: object
 }
 
 export interface GetAnswerResponseData {
-    fromId: number,
+    fromId: string,
     sdp: string
 }
 
 export interface CandidateData {
-    fromId: number,
+    fromId: string,
     candidate: object;
 }

@@ -1,6 +1,6 @@
 import {Api, ChatMessage, CreateRoomResult, JoinRoomResult, RoomModel, SignInRequest, SignInResult} from "./index";
 import SnakeMultiplay from "../snake/multiplay/SnakeMultiplay";
-import {ChatRtcData} from "../snake/type/rtc";
+import {ChatRtcData, ConnectionStateData} from "../snake/type/rtc";
 import {CLIENT_MESSAGE_TYPE} from "../snake/Constants";
 
 type Message = { type: string, data: any }
@@ -27,14 +27,22 @@ export class DefaultApi implements Api {
         }
     }
 
-    subscribeChatMessage(subscriber: (chat: ChatMessage) => void) {
-        SnakeMultiplay.consumeChatMessage = (message) => subscriber({name: message.name, text: message.message})
+    static init(): Promise<Api> {
+        return new Promise(resolve => {
+            new DefaultApi(
+                new WebSocket('wss://s8sc0oaqbh.execute-api.ap-northeast-2.amazonaws.com/prod'),
+                api => resolve(api))
+        })
     }
 
-    sendChatMessage(chat: ChatMessage) {
+    subscribeChatMessage(subscriber: (chat: ChatRtcData | ConnectionStateData) => void) {
+        SnakeMultiplay.consumeChatMessage = (message) => subscriber(message)
+    }
+
+    sendChatMessage(chat: ChatRtcData) {
         SnakeMultiplay.broadcast<ChatRtcData>(CLIENT_MESSAGE_TYPE.CHAT, {
             name: chat.name,
-            message: chat.text
+            message: chat.message
         })
     }
 
@@ -69,13 +77,5 @@ export class DefaultApi implements Api {
             console.log('DefaultApi.sendSocketMessage', type, data)
             this.socket.send(JSON.stringify({type: type, data: data, uid: this.user.id}))
         });
-    }
-
-    static init(): Promise<Api> {
-        return new Promise(resolve => {
-            new DefaultApi(
-                new WebSocket('wss://s8sc0oaqbh.execute-api.ap-northeast-2.amazonaws.com/prod'),
-                api => resolve(api))
-        })
     }
 }

@@ -42,12 +42,16 @@ interface rtcObject {
     candidate?: RTCIceCandidate
 }
 
+interface connection extends rtcObject {
+    name?: string,
+}
+
 // `${userId}::${userId}`
 export type connectionKey = `${string}::${string}`
 
 interface connections {
     // 각각의 커넥션마다 고유의 키를 가짐
-    [key: connectionKey]: rtcObject
+    [key: connectionKey]: connection
 }
 
 export interface MultiPlayInterface {
@@ -69,7 +73,7 @@ export class MultiPlay implements MultiPlayInterface {
         return this.subject.subscribe(observer)
     }
 
-    createKey(id: number) {
+    createKey(id: string) {
         return `${this.id}::${id}`
     }
 
@@ -78,7 +82,7 @@ export class MultiPlay implements MultiPlayInterface {
         return ids[Math.abs(ids.findIndex(v => v === this.id) - 1)];
     }
 
-    getKeyfromId(fromId: number): connectionKey | null {
+    getKeyfromId(fromId: string): connectionKey | null {
         for (let connectionsKey in this.connections) {
             if (connectionsKey.includes(fromId.toString())) {
                 return connectionsKey as connectionKey;

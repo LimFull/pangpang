@@ -12,7 +12,8 @@ export const MAP_SIZE = {
 
 export const CLIENT_MESSAGE_TYPE = {
     OPEN: "OPEN",
-    CHAT: "CHAT"
+    CLOSE: "CLOSE",
+    CHAT: "CHAT",
 }
 
 export const SERVER_MESSAGE_TYPE = {

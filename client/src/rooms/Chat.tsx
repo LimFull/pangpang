@@ -3,16 +3,17 @@ import {useSession} from "../session";
 import {List, ListItem, Stack, TextField} from "@mui/material";
 import {ChatMessage} from "../api";
 import _ from 'lodash'
+import {ChatRtcData, ConnectionStateData} from "../snake/type/rtc";
 
 export function Chat() {
     const session = useSession()
     const [message, setMessage] = useState('');
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [messages, setMessages] = useState<Array<ChatRtcData | ConnectionStateData>>([]);
     const messageBox = useRef<HTMLUListElement>(null);
 
     const sendMessage = (e: React.KeyboardEvent<HTMLDivElement>) => {
         if (e.key === 'Enter' && message) {
-            const chat: ChatMessage = {name: session.user.name, text: message}
+            const chat: ChatRtcData = {name: session.user.name, message: message}
             setMessages(prevMessages => [...prevMessages, chat])
             setMessage('');
             session.api.sendChatMessage(chat)
@@ -32,13 +33,21 @@ export function Chat() {
             dense
             ref={messageBox}
             sx={{overflowY: 'scroll', backgroundColor: 'rgba(0,0,0,0.75)', height: '100%'}}>
-            {messages.map((v, idx) => (
-                <ListItem
+            {messages.map((v, idx) => {
+                let msg = '';
+                if ('message' in v) {
+                    msg = `${v.name} : ${v.message}`
+                } else if ('connectionState' in v && v.connectionState === 'OPEN') {
+                    msg = `${v.name} 님이 입장하셨습니다.`
+                } else if ('connectionState' in v && v.connectionState === 'CANCEL') {
+                    msg = `${v.name} 님이 퇴장하셨습니다.`
+                }
+                return <ListItem
                     sx={{paddingTop: '1px', paddingBottom: '1px', color: 'rgb(255,255,255)'}}
                     key={idx}>
-                    {v.name} : {v.text}
+                    {msg}
                 </ListItem>
-            ))}
+            })}
         </List>
         <TextField
             sx={{width: '100%', alignSelf: 'flex-end'}}
