@@ -1,5 +1,3 @@
-import {ChatRtcData, ConnectionStateData} from "../snake/type/rtc";
-
 export interface Api {
 
     signIn(request: SignInRequest): Promise<SignInResult>
@@ -9,10 +7,12 @@ export interface Api {
     createRoom(title: string): Promise<CreateRoomResult>
 
     joinRoom(roomNumber: number): Promise<JoinRoomResult>
+}
 
-    subscribeChatMessage(subscriber: (chat: ChatRtcData | ConnectionStateData) => void)
+export interface RoomApi {
+    subscribeChatMessage(subscriber: (chat: ChatMessage) => void)
 
-    sendChatMessage(chat: ChatRtcData)
+    sendChatMessage(chat: ChatMessage)
 }
 
 export interface SignInRequest {
@@ -39,6 +39,7 @@ export interface JoinRoomResult {
 }
 
 export interface ChatMessage {
+    category: 'SYSTEM' | 'MESSAGE';
     name: string;
     text: string;
 }

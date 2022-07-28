@@ -1,7 +1,4 @@
 import {Api, CreateRoomResult, JoinRoomResult, RoomModel, SignInRequest, SignInResult} from "./index";
-import SnakeMultiplay from "../snake/multiplay/SnakeMultiplay";
-import {ChatRtcData, ConnectionStateData} from "../snake/type/rtc";
-import {CLIENT_MESSAGE_TYPE} from "../snake/Constants";
 
 type Message = { type: string, data: any }
 
@@ -11,14 +8,12 @@ export class DefaultApi implements Api {
 
     private user: { id: number, connectionId: string } = {id: 0, connectionId: ''}
 
-    constructor(private socket: WebSocket, onOpen?: (api: Api) => void) {
+    constructor(public socket: WebSocket, onOpen?: (api: Api) => void) {
         this.socket.onopen = (ev: Event) => {
             onOpen && onOpen(this)
         }
 
         this.socket.onmessage = (ev: MessageEvent) => {
-            SnakeMultiplay.socket = this.socket
-            SnakeMultiplay.onSocketMessage(ev)
             const message: { type: string, data: any } = JSON.parse(ev.data)
             const subscriber = this.messageConsumers.get(message.type)
             if (subscriber) {
@@ -35,25 +30,12 @@ export class DefaultApi implements Api {
         })
     }
 
-    subscribeChatMessage(subscriber: (chat: ChatRtcData | ConnectionStateData) => void) {
-        SnakeMultiplay.consumeChatMessage = (message) => subscriber(message)
-    }
-
-    sendChatMessage(chat: ChatRtcData) {
-        SnakeMultiplay.broadcast<ChatRtcData>(CLIENT_MESSAGE_TYPE.CHAT, {
-            name: chat.name,
-            message: chat.message
-        })
-    }
-
     joinRoom(roomNumber: number): Promise<JoinRoomResult> {
         return this.awaitMessage('JOIN_ROOM', {roomNumber: roomNumber})
     }
 
     signIn(request: SignInRequest): Promise<SignInResult> {
         return this.awaitMessage<SignInResult>('SIGN_IN', request).then(result => {
-            SnakeMultiplay.id = result.connectionId;
-            SnakeMultiplay.nickname = request.name;
             this.user.id = result.id
             this.user.connectionId = result.connectionId
             return result;
@@ -75,7 +57,7 @@ export class DefaultApi implements Api {
                 type,
                 [message => resolve(message.data)]
             )
-            console.log('DefaultApi.sendSocketMessage', type, data)
+            console.log('awaitMessage', type, data)
             this.socket.send(JSON.stringify({type: type, data: data, uid: this.user.id}))
         });
     }

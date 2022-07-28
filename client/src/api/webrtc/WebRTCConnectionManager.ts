@@ -1,5 +1,13 @@
-import {SERVER_MESSAGE_TYPE} from "../snake/Constants";
-import {Subject} from "@reactivex/rxjs/dist/package";
+import {CLIENT_MESSAGE_TYPE, SERVER_MESSAGE_TYPE} from "../../snake/Constants";
+import {User} from "../../session";
+import {
+    CandidateData,
+    ConnectionStateData,
+    CreateAnswerResponseData,
+    CreateOfferResponseData,
+    GetAnswerResponseData,
+    WebRTCMessage
+} from "./index";
 
 // TODO: 턴서버 바꿔야 함
 const PC_CONFIG = {
@@ -30,57 +38,52 @@ const PC_CONFIG = {
     ]
 };
 
-export interface messageObject {
-    id: string,
-    type: string,
-    data: any,
-}
-
 interface rtcObject {
-    pc?: RTCPeerConnection,
-    channel?: RTCDataChannel,
-    candidate?: RTCIceCandidate
-}
-
-interface connection extends rtcObject {
-    name?: string,
+    pc?: RTCPeerConnection;
+    channel?: RTCDataChannel;
+    candidate?: RTCIceCandidate;
+    name?: string;
 }
 
 // `${userId}::${userId}`
 export type connectionKey = `${string}::${string}`
 
-interface connections {
-    // 각각의 커넥션마다 고유의 키를 가짐
-    [key: connectionKey]: connection
-}
+export default class WebRTCConnectionManager {
+    connections: Map<connectionKey, rtcObject> = new Map();
 
-export interface MultiPlayInterface {
-    onOpen: (data: RTCDataChannel) => () => void;
-    onMessage: (message: MessageEvent) => void;
-    onSocketMessage: (message: MessageEvent) => void;
-}
+    constructor(
+        private user: User,
+        private connectionId: string,
+        private socket: WebSocket
+    ) {
+        if (socket.onmessage) {
+            const originOnMessage = socket.onmessage!!
+            socket.onmessage = (ev: MessageEvent) => {
+                this.prepareConnection(ev);
+                originOnMessage.call(socket, ev);
+            }
+        } else {
+            socket.onmessage = this.prepareConnection
+        }
 
-export class MultiPlay implements MultiPlayInterface {
-    connections: connections = {}
-    socket: WebSocket | null = null;
-    id: string = '';
-    nickname: string = '';
-    subject: Subject<any> = new Subject<any>();
-
-    constructor() {
+        window.addEventListener('beforeunload', () => {
+            Object.values(this.connections).forEach(c => {
+                c.channel.close();
+                c.pc.close();
+            });
+        })
     }
 
-    subscribe(observer) {
-        return this.subject.subscribe(observer)
+    rtcMessageListener: (ev: WebRTCMessage<any>) => void = () => {
     }
 
-    createKey(id: string) {
-        return `${this.id}::${id}`
+    createKey(connectionId: string) {
+        return `${this.connectionId}::${connectionId}`
     }
 
     getToIdFromKey(key: connectionKey) {
         const ids = key.split('::').map(v => v);
-        return ids[Math.abs(ids.findIndex(v => v === this.id) - 1)];
+        return ids[Math.abs(ids.findIndex(v => v === this.connectionId) - 1)];
     }
 
     getKeyfromId(fromId: string): connectionKey | null {
@@ -92,35 +95,31 @@ export class MultiPlay implements MultiPlayInterface {
         return null;
     }
 
-    onSocketMessage(data: MessageEvent) {
-        console.log("소켓 메시지", data)
+    prepareConnection(data: MessageEvent) {
+        const msg = this.toObjectMessage(data)
+        console.log('prepareConnection', msg.type, msg.data)
+        if (msg.type === SERVER_MESSAGE_TYPE.INIT_CONNECTION) {
+            const data: CreateOfferResponseData = msg.data;
+            this.initConnection(this.createKey(data.id) as connectionKey).then(key => this.createOffer(key))
+        } else if (msg.type === SERVER_MESSAGE_TYPE.CREATE_ANSWER) {
+            const data: CreateAnswerResponseData = msg.data;
+            this.initConnection(this.createKey(data.fromId) as connectionKey).then(key => this.createAnswer(key, data.sdp))
+        } else if (msg.type === SERVER_MESSAGE_TYPE.GET_ANSWER) {
+            const data: GetAnswerResponseData = msg.data;
+            const answerKey = this.getKeyfromId(data.fromId);
+            if (!answerKey) return;
+            this.getAnswer(answerKey, data.sdp)
+        } else if (msg.type === SERVER_MESSAGE_TYPE.CANDIDATE) {
+            const data: CandidateData = msg.data;
+            const candidateKey = this.getKeyfromId(data.fromId);
+            if (!candidateKey) return;
+            this.candidate(candidateKey, data.candidate)
+        }
     }
 
     sendSocketMessage(type: string, data?: object) {
-        this.socket!.send(this.toStringMessage(type, {id: this.id, ...data}))
+        this.socket!.send(this.toStringMessage(type, {id: this.connectionId, ...data}))
     }
-
-    async connectSocket() {
-        return new Promise<void>((resolve, reject) => {
-            this.socket = new WebSocket('wss://s8sc0oaqbh.execute-api.ap-northeast-2.amazonaws.com/prod');
-            this.socket.onclose = () => {
-                console.log("close", this.id);
-            }
-            this.socket.onopen = () => {
-                if (!this.socket) {
-                    return
-                }
-                this.sendSocketMessage(SERVER_MESSAGE_TYPE.GET_ROOMS);
-                this.socket.onmessage = this.onSocketMessage;
-                resolve();
-                this.socket.onerror = (err) => {
-                    reject(err)
-                }
-            };
-
-        })
-    }
-
 
     broadcast<T>(type: string, data: T) {
         const message = this.toStringMessage(type, data);
@@ -128,22 +127,33 @@ export class MultiPlay implements MultiPlayInterface {
             try {
                 this.connections[connectionsKey].channel.send(message)
             } catch (e) {
-                console.log(e);
+                console.log(e, this.connections[connectionsKey]);
             }
         }
     }
 
     onOpen(channel: RTCDataChannel) {
-        return function () {
+        return () => {
+            const stateData: ConnectionStateData = {
+                name: this.user.name,
+                connectionState: "OPEN",
+            }
 
-        }
+            this.broadcast(CLIENT_MESSAGE_TYPE.OPEN, stateData)
+        };
     }
 
-    onMessage(message: Event): void {
+    onMessage(message: MessageEvent): void {
+        const msg = this.toObjectMessage(message);
+        this.rtcMessageListener(msg)
     }
 
     lossConnection(key: string): void {
-        console.log("loss Connection", key)
+        const data: ConnectionStateData = {
+            name: this.connections[key].name,
+            connectionState: 'CANCEL',
+        }
+        // this.rtcMessageListener(data)
         delete this.connections[key];
     }
 
@@ -153,8 +163,6 @@ export class MultiPlay implements MultiPlayInterface {
         const pc = new RTCPeerConnection(PC_CONFIG);
 
         pc.onicecandidate = (e) => {
-
-            console.log("onIceCandidate", e.candidate)
             if (e.candidate) {
                 this.connections[key].candidate = e.candidate
             }
@@ -171,7 +179,7 @@ export class MultiPlay implements MultiPlayInterface {
 
         this.connections[key].pc!.oniceconnectionstatechange = (e) => {
             const state = this.connections[key].pc!.iceConnectionState
-            console.log("state change", state);
+            console.log("state change", state, e);
             if (state === 'disconnected') {
                 this.lossConnection(key);
             }
@@ -186,10 +194,8 @@ export class MultiPlay implements MultiPlayInterface {
 
         this.connections[key].channel = this.connections[key].pc!.createDataChannel('pangpang');
         this.connections[key].channel!.onopen = this.onOpen(this.connections[key].channel!);
-        this.connections[key].channel!.onmessage = this.onMessage;
-        this.connections[key].channel!.onclose = () => {
-            console.log("Data Channel closed, key =", key)
-        }
+        this.connections[key].channel!.onmessage = ev => this.onMessage(ev);
+        this.connections[key].channel!.onclose = () => console.log("Data Channel closed, key =", key)
 
         const sdp = await this.connections[key].pc!.createOffer();
 
@@ -210,7 +216,7 @@ export class MultiPlay implements MultiPlayInterface {
         this.connections[key].pc!.ondatachannel = (event) => {
             this.connections[key].channel = event.channel;
             this.connections[key].channel!.onopen = this.onOpen(this.connections[key].channel!);
-            this.connections[key].channel!.onmessage = this.onMessage;
+            this.connections[key].channel!.onmessage = ev => this.onMessage(ev);
             this.connections[key].channel!.onclose = () => {
                 console.log("Data Channel closed, key =", key)
             }
@@ -263,18 +269,13 @@ export class MultiPlay implements MultiPlayInterface {
         this.connections[key].pc!.addIceCandidate(candidate as RTCIceCandidateInit)
     }
 
-
     protected toStringMessage(type, data?) {
-        const msg: messageObject = {
-            type, id: this.id, data
-        }
+        const msg: WebRTCMessage<any> = {type, id: this.connectionId, data}
         return JSON.stringify(msg)
     }
 
-    protected toObjectMessage(message: MessageEvent) {
+    protected toObjectMessage(message: MessageEvent): WebRTCMessage<any> {
         return JSON.parse(message.data)
     }
-
 }
 
-export default new MultiPlay();

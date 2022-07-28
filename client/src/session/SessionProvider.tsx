@@ -49,7 +49,7 @@ async function initializingSession(name: string): Promise<Session> {
     const api = await DefaultApi.init()
     const result = await api.signIn({name: name})
     return {
-        user: {name: name, id: result.id},
+        user: {name: name, id: result.id, connectionId: result.connectionId},
         api: api
     }
 }

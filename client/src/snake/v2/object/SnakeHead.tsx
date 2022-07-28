@@ -2,9 +2,8 @@ import {Direction, GameObject, Observer, Position} from "../../../engin";
 import {SnakeBody} from "./SnakeBody";
 import {MAP_SIZE} from "../../Constants";
 import {Game2dState} from "../../../engin/Game2dState";
-import {SnakeObserverObject} from "./SnakeObserverObject";
 
-export class SnakeHead extends SnakeObserverObject implements GameObject, Observer {
+export class SnakeHead implements GameObject, Observer {
     pos: Position;
     updateTime: number = new Date().getTime();
     direction: Direction;
@@ -14,7 +13,6 @@ export class SnakeHead extends SnakeObserverObject implements GameObject, Observ
     deadBodyCount: number = 5;
 
     constructor(pos: Position, direction: Direction) {
-        super();
         this.pos = pos;
         this.direction = direction;
     }
