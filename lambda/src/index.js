@@ -37,7 +37,9 @@ async function handleDisconnect(connectionId) {
             Key: {id: {N: user.id.N}, connectionId: {S: connectionId}}
         }, handleAwsOutput).promise();
 
-        await deleteRoomUser(user.id.N, user.currentRoomId.N);
+        if (user.currentRoomId) {
+            await deleteRoomUser(user.id.N, user.currentRoomId.N);
+        }
     }
 }
 
@@ -108,7 +110,7 @@ async function getRooms({type, data}, connectionId) {
 
 async function joinRoom({type, data, uid}, connectionId) {
     const user = await getUser(uid, connectionId);
-    if (user.currentRoomId.N) {
+    if (user.currentRoomId) {
         await deleteRoomUser(uid, user.currentRoomId.N)
     }
 
@@ -128,12 +130,12 @@ async function joinRoom({type, data, uid}, connectionId) {
         TableName: 'user',
         Key: {"id": {N: `${uid}`}, "connectionId": {S: connectionId}},
         UpdateExpression: "SET currentRoomId = :currentRoomId",
-        ExpressionAttributeValues: {":currentRoomId": {N: data.roomNumber}},
+        ExpressionAttributeValues: {":currentRoomId": {N: `${data.roomNumber}`}},
     }).promise();
 
     await ddb.putItem({
         TableName: 'room-user',
-        Item: {uid: {N: `${uid}`}, roomId: {N: data.roomNumber}, connectionId: {S: connectionId}}
+        Item: {uid: {N: `${uid}`}, roomId: {N: `${data.roomNumber}`}, connectionId: {S: connectionId}}
     }).promise()
 
     await pushMessage(connectionId, type, {roomNumber: data.roomNumber})
@@ -202,22 +204,22 @@ async function getRoomUsersByRoomId(roomId) {
     return ddb.scan({
         TableName: 'room-user',
         FilterExpression: 'roomId = :roomId',
-        ExpressionAttributeValues: {":roomId": {N: roomId}},
+        ExpressionAttributeValues: {":roomId": {N: `${roomId}`}},
     }, handleAwsOutput).promise()
 }
 
 async function deleteRoomUser(uid, roomId) {
     await ddb.deleteItem({
         TableName: 'room-user',
-        Key: {uid: {N: `${uid}`}, roomId: {N: roomId}}
+        Key: {uid: {N: `${uid}`}, roomId: {N: `${roomId}`}}
     }, handleAwsOutput).promise();
 
     const roomUsers = await getRoomUsersByRoomId(roomId)
 
     if (roomUsers.Count === 0) {
-        ddb.deleteItem({
+        await ddb.deleteItem({
             TableName: 'room',
             Key: {id: {N: `${roomId}`}}
-        })
+        }).promise()
     }
 }

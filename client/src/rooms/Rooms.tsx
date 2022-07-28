@@ -5,10 +5,6 @@ import {RoomModel} from "../api";
 import {useSession} from "../session";
 import {useStateWithInitializer} from "../util";
 import {Button, Divider, Grid, List, ListItem, ListItemText, Stack} from "@mui/material";
-import {bind} from "../store";
-import * as roomActions from "../snake/reducers/room";
-
-const {setRoomNumber} = bind(roomActions)
 
 export default function Rooms() {
     const session = useSession();
@@ -16,14 +12,11 @@ export default function Rooms() {
     const [showModal, setShowModal] = useState<boolean>(false);
     const navigate = useNavigate();
 
-    const join = (roomNumber: number) => session.api.joinRoom(roomNumber).then(() => {
-        setRoomNumber(roomNumber)
-        navigate(`/rooms/${roomNumber}`)
-    })
+    const navigateRoom = (roomNumber: number) => navigate(`/rooms/${roomNumber}`)
 
     const handleCreateRoom = useCallback(async (title: string) => {
         const data = await session.api.createRoom(title)
-        navigate(`/rooms/${data.roomNumber}`)
+        navigateRoom(data.roomNumber)
     }, []);
 
     const handleShowModal = useCallback(async () => {
@@ -50,7 +43,7 @@ export default function Rooms() {
                                         size="large"
                                         color='primary'
                                         variant="outlined"
-                                        onClick={() => join(room.roomNumber)}>enter</Button>
+                                        onClick={() => navigateRoom(room.roomNumber)}>enter</Button>
                                 }>
                                 <ListItemText
                                     primary={room.title}
