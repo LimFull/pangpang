@@ -1,4 +1,4 @@
-import {Api, ChatMessage, CreateRoomResult, JoinRoomResult, RoomModel, SignInRequest, SignInResult} from "./index";
+import {Api, CreateRoomResult, JoinRoomResult, RoomModel, SignInRequest, SignInResult} from "./index";
 import SnakeMultiplay from "../snake/multiplay/SnakeMultiplay";
 import {ChatRtcData, ConnectionStateData} from "../snake/type/rtc";
 import {CLIENT_MESSAGE_TYPE} from "../snake/Constants";
@@ -53,6 +53,7 @@ export class DefaultApi implements Api {
     signIn(request: SignInRequest): Promise<SignInResult> {
         return this.awaitMessage<SignInResult>('SIGN_IN', request).then(result => {
             SnakeMultiplay.id = result.connectionId;
+            SnakeMultiplay.nickname = request.name;
             this.user.id = result.id
             this.user.connectionId = result.connectionId
             return result;

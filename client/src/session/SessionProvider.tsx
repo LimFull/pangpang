@@ -1,12 +1,9 @@
 import * as React from "react";
-import {useEffect, useState} from "react";
 import {Session, SessionContext} from "./index";
-import {useDispatch, useSelector} from "react-redux";
-import {SET_NICKNAME} from "../snake/reducers/account";
 import styled from "styled-components";
-import {RootState} from "../store";
 import {SignIn} from "./SignIn";
 import {DefaultApi} from "../api/DefaultApi";
+import {useStateWithInitializer} from "../util";
 
 const Container = styled.div`
   display: flex;
@@ -23,12 +20,18 @@ interface Props {
 }
 
 export default function SessionProvider(props: Props) {
-    const dispatch = useDispatch();
-    const {nickname} = useSelector((state: RootState) => state.account);
-    const [session, setSession] = useState<Session | null>(null);
-    useEffect(() => {
-        if (nickname) initializingSession(nickname).then(setSession)
-    }, [nickname])
+    const [session, setSession] = useStateWithInitializer<Session | null>(
+        null,
+        () => {
+            const nickname = sessionStorage.getItem('nickname')
+            if (nickname) return initializingSession(nickname)
+            return Promise.resolve(null)
+        })
+
+    const signInComplete = (nickname: string) => {
+        sessionStorage.setItem('nickname', nickname)
+        initializingSession(nickname).then(setSession)
+    }
 
     if (session) {
         return (
@@ -39,7 +42,7 @@ export default function SessionProvider(props: Props) {
             </Container>
         )
     }
-    return <SignIn complete={user => dispatch({type: SET_NICKNAME, payload: {nickname: user.name}})}/>
+    return <SignIn complete={user => signInComplete(user.name)}/>
 };
 
 async function initializingSession(name: string): Promise<Session> {

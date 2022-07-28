@@ -1,8 +1,7 @@
 import {connectionKey, messageObject, MultiPlay, MultiPlayInterface} from "../../multiplay/MultiPlay";
 import {CLIENT_MESSAGE_TYPE, SERVER_MESSAGE_TYPE} from "../Constants";
 import {CandidateData, CreateAnswerResponseData, CreateOfferResponseData, GetAnswerResponseData} from "../type/socket";
-import {ChatRtcData, ConnectionStateData, RtcResponse} from "../type/rtc";
-import store from "../../store";
+import {ChatRtcData, ConnectionStateData} from "../type/rtc";
 
 export class SnakeMultiplay extends MultiPlay implements MultiPlayInterface {
     constructor() {
@@ -51,7 +50,7 @@ export class SnakeMultiplay extends MultiPlay implements MultiPlayInterface {
     onOpen(data: RTCDataChannel): () => void {
         return () => {
             const stateData: ConnectionStateData = {
-                name: store.getState().account.nickname,
+                name: this.nickname,
                 connectionState: "OPEN",
             }
 

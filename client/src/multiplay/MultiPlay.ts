@@ -64,6 +64,7 @@ export class MultiPlay implements MultiPlayInterface {
     connections: connections = {}
     socket: WebSocket | null = null;
     id: string = '';
+    nickname: string = '';
     subject: Subject<any> = new Subject<any>();
 
     constructor() {
