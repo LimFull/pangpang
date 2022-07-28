@@ -48,15 +48,14 @@ export class SnakeMultiplay extends MultiPlay implements MultiPlayInterface {
         super.lossConnection(key);
     }
 
-    onOpen(data: RTCDataChannel): () => void {
+    onOpen(key: connectionKey): () => void {
         return () => {
             const stateData: ConnectionStateData = {
                 name: store.getState().account.nickname,
                 connectionState: "OPEN",
             }
-
-
-            this.broadcast(CLIENT_MESSAGE_TYPE.OPEN, stateData)
+            
+            this.sendTo(key, CLIENT_MESSAGE_TYPE.OPEN, stateData);
         };
     }
 

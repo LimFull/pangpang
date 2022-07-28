@@ -55,7 +55,7 @@ interface connections {
 }
 
 export interface MultiPlayInterface {
-    onOpen: (data: RTCDataChannel) => () => void;
+    onOpen: (key: connectionKey) => () => void;
     onMessage: (message: MessageEvent) => void;
     onSocketMessage: (message: MessageEvent) => void;
 }
@@ -132,7 +132,16 @@ export class MultiPlay implements MultiPlayInterface {
         }
     }
 
-    onOpen(channel: RTCDataChannel) {
+    sendTo<T>(key: connectionKey, type: string, data: T) {
+        const message = this.toStringMessage(type, data);
+        try {
+            this.connections[key].channel!.send(message);
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    onOpen(key: connectionKey) {
         return function () {
 
         }
@@ -184,7 +193,7 @@ export class MultiPlay implements MultiPlayInterface {
         if (!this.connections[key]) this.connections[key] = {};
 
         this.connections[key].channel = this.connections[key].pc!.createDataChannel('pangpang');
-        this.connections[key].channel!.onopen = this.onOpen(this.connections[key].channel!);
+        this.connections[key].channel!.onopen = this.onOpen(key);
         this.connections[key].channel!.onmessage = this.onMessage;
         this.connections[key].channel!.onclose = () => {
             console.log("Data Channel closed, key =", key)
@@ -208,7 +217,7 @@ export class MultiPlay implements MultiPlayInterface {
         if (!this.connections[key]) this.connections[key] = {};
         this.connections[key].pc!.ondatachannel = (event) => {
             this.connections[key].channel = event.channel;
-            this.connections[key].channel!.onopen = this.onOpen(this.connections[key].channel!);
+            this.connections[key].channel!.onopen = this.onOpen(key);
             this.connections[key].channel!.onmessage = this.onMessage;
             this.connections[key].channel!.onclose = () => {
                 console.log("Data Channel closed, key =", key)
