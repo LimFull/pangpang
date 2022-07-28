@@ -25,6 +25,19 @@ exports.handler = async (event) => {
 }
 
 async function handleDisconnect(connectionId) {
+    const users = await ddb.scan({
+        TableName: 'user',
+        FilterExpression: 'connectionId = :connectionId',
+        ExpressionAttributeValues: {":connectionId": {S: connectionId}},
+    }, handleAwsOutput).promise();
+
+    for (const row of users.Items) {
+        await ddb.deleteItem({
+            TableName: 'user',
+            Key: {id: {N: row.id.N}, connectionId: {S: connectionId}}
+        }, handleAwsOutput).promise();
+    }
+    
     const result = await ddb.scan({
         TableName: 'rtc-connection',
         FilterExpression: 'connectionId = :connectionId',
