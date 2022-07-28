@@ -40,7 +40,6 @@ async function handleDisconnect(connectionId) {
             }
         }, handleAwsOutput).promise();
     }
-
 }
 
 async function handleMessageData(message, connectionId) {
@@ -53,15 +52,15 @@ async function handleMessageData(message, connectionId) {
         case 'GET_ROOMS':
             return await getRooms(message, connectionId);
         case 'JOIN_ROOM':
-            return await joinRoom(message, connectionId)
+            return await joinRoom(message, connectionId);
         case 'CREATE_OFFER':
-            return await createOffer(message, connectionId)
+            return await createOffer(message, connectionId);
         case 'CREATE_ANSWER':
-            return await createAnswer(message, connectionId)
+            return await createAnswer(message, connectionId);
         case 'CANDIDATE':
-            return await candidate(message, connectionId)
+            return await candidate(message, connectionId);
         default:
-            await pushMessage(connectionId, message.type, {error: 'unknown data type'})
+            await pushMessage(connectionId, message.type, {error: 'unknown data type'});
     }
 }
 
@@ -71,7 +70,7 @@ async function signIn({type, data}, connectionId) {
         TableName: 'user',
         Item: {
             id: {N: `${id}`},
-            socketId: {S: connectionId},
+            connectionId: {S: connectionId},
             name: {S: data.name},
         }
     }).promise()
@@ -112,7 +111,7 @@ async function getRooms({type, data}, connectionId) {
     )
 }
 
-async function joinRoom({type, data}, connectionId) {
+async function joinRoom({type, data, uid}, connectionId) {
     const result = await ddb.scan({
         TableName: 'rtc-connection',
         FilterExpression: 'roomNumber = :joinRoomNumber',
@@ -128,6 +127,13 @@ async function joinRoom({type, data}, connectionId) {
             ).catch(e => console.log('INIT_CONNECTION_FAIL', e, row.connectionId));
         }
     }
+
+    await ddb.updateItem({
+        TableName: 'user',
+        Key: {"id": {N: `${uid}`}, "connectionId": {S: connectionId}},
+        UpdateExpression: "SET currentRoomNumber = :currentRoomNumber",
+        ExpressionAttributeValues: {":currentRoomNumber": {N: data.roomNumber}},
+    }).promise();
 
     await ddb.putItem({
         TableName: 'rtc-connection',
