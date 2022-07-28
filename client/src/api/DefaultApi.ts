@@ -9,6 +9,8 @@ export class DefaultApi implements Api {
 
     private messageConsumers: Map<string, ((message: Message) => void)[]> = new Map()
 
+    private user: { id: number, connectionId: string } = {id: 0, connectionId: ''}
+
     constructor(private socket: WebSocket, onOpen?: (api: Api) => void) {
         this.socket.onopen = (ev: Event) => {
             onOpen && onOpen(this)
@@ -43,6 +45,8 @@ export class DefaultApi implements Api {
     signIn(request: SignInRequest): Promise<SignInResult> {
         return this.awaitMessage<SignInResult>('SIGN_IN', request).then(result => {
             SnakeMultiplay.id = result.connectionId;
+            this.user.id = result.id
+            this.user.connectionId = result.connectionId
             return result;
         })
     }
@@ -63,7 +67,7 @@ export class DefaultApi implements Api {
                 [message => resolve(message.data)]
             )
             console.log('DefaultApi.sendSocketMessage', type, data)
-            this.socket.send(JSON.stringify({type: type, data: data}))
+            this.socket.send(JSON.stringify({type: type, data: data, uid: this.user.id}))
         });
     }
 
