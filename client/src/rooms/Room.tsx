@@ -8,7 +8,9 @@ import {useEffect, useState} from "react";
 import {useDispatch, useSelector} from "react-redux";
 import {RootState} from "../store";
 import {ADD_USER, User} from "../snake/reducers/users";
-import SnakeMultiplay from "../snake/multiplay/SnakeMultiplay";
+import {DefaultRoomApi} from "../api/DefaultRoomApi";
+import {RoomApi} from "../api";
+import {NoOpRoomApi} from "../api/NoOpRoomApi";
 
 const CardContainer = styled.div`
   display: flex;
@@ -32,7 +34,7 @@ interface RoomInfoType {
 export function Room() {
     const param = useParams();
     const session = useSession();
-    const [joinSuccess, setJoinSuccess] = useState(false)
+    const [roomApi, setRoomApi] = useState<RoomApi | null>(null)
     const {users} = useSelector((state: RootState) => state.users)
     const [roomInfo, setRoomInfo] = useState<RoomInfoType | null>();
     const dispatch = useDispatch();
@@ -40,28 +42,27 @@ export function Room() {
     useEffect(() => {
         const roomNumber = parseInt(param.roomNumber || '')
         if (roomNumber) {
+            const api = DefaultRoomApi.init(session)
             session.api.joinRoom(roomNumber).then((result) => {
-                SnakeMultiplay.color = result.color;
                 setRoomInfo({roomNumber: result.roomNumber, title: result.title})
-                setJoinSuccess(true)
+                setRoomApi(api)
             });
         }
     }, [param.roomNumber])
 
     useEffect(() => {
-        if (!joinSuccess) return;
+        if (!roomApi) return;
         dispatch({
             type: ADD_USER, payload: {
                 id: session.user.id, user: {
-                    name: session.user.name, color: SnakeMultiplay.color
+                    name: session.user.name, color: ''
                 }
             }
         })
-    }, [joinSuccess]);
+    }, [roomApi]);
 
     return <Container>
-        {!joinSuccess && <Backdrop sx={{color: '#fff'}} open={true}><CircularProgress color="inherit"/></Backdrop>}
-
+        {!roomApi && <Backdrop sx={{color: '#fff'}} open={true}><CircularProgress color="inherit"/></Backdrop>}
         <Stack sx={{height: '90vh', overflowY: 'scroll'}}>
             <RoomInfo>
                 {roomInfo ? `${roomInfo.roomNumber} ${roomInfo.title}` : ''}
@@ -77,7 +78,7 @@ export function Room() {
                 }
             </CardContainer>
             <Box sx={{width: '100%', height: '30vh', alignSelf: 'flex-end'}}>
-                <Chat/>
+                <Chat roomApi={roomApi || NoOpRoomApi.instance}/>
             </Box>
         </Stack>
     </Container>

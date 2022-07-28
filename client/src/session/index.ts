@@ -3,6 +3,7 @@ import {Api} from "../api";
 
 export interface User {
     id: number;
+    connectionId: string;
     name: string;
 }
 
