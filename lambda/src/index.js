@@ -88,11 +88,6 @@ async function createRoom({type, data, uid}, connectionId) {
         Item: {id: {N: roomId}, title: {S: data.title}}
     }).promise();
 
-    await ddb.putItem({
-        TableName: 'room-user',
-        Item: {uid: {N: `${uid}`}, roomId: {N: roomId}, connectionId: {S: connectionId}}
-    }).promise();
-
     await pushMessage(connectionId, type, {roomNumber: roomId});
 }
 
@@ -109,6 +104,10 @@ async function getRooms({type, data}, connectionId) {
 }
 
 async function joinRoom({type, data, uid}, connectionId) {
+    const room = await getRoom(data.roomNumber);
+    // if (!room) {
+    //     return pushMessage(connectionId, 'ROOM_NOT_EXIST')
+    // }
     const user = await getUser(uid, connectionId);
     if (user.currentRoomId) {
         await deleteRoomUser(uid, user.currentRoomId.N)
@@ -116,7 +115,9 @@ async function joinRoom({type, data, uid}, connectionId) {
 
     const roomUsers = await getRoomUsersByRoomId(data.roomNumber).then(result => result.Items)
 
+    const colors = new Set(['rgba(95,0,255,1)', 'rgba(0,0,255,1)', 'rgba(255,117,0,1)', 'rgba(77,197,32,1)'])
     for (const roomUser of roomUsers) {
+        colors.delete(roomUser.color.S)
         if (roomUser.connectionId.S !== connectionId) {
             await pushMessage(
                 roomUser.connectionId.S,
@@ -133,12 +134,24 @@ async function joinRoom({type, data, uid}, connectionId) {
         ExpressionAttributeValues: {":currentRoomId": {N: `${data.roomNumber}`}},
     }).promise();
 
+    const r = () => Math.floor(Math.random() * 256)
+    const color = colors.values().next().value || `rgba(${r()}, ${r()}, ${r()}, 1)`
     await ddb.putItem({
         TableName: 'room-user',
-        Item: {uid: {N: `${uid}`}, roomId: {N: `${data.roomNumber}`}, connectionId: {S: connectionId}}
+        Item: {
+            uid: {N: `${uid}`},
+            roomId: {N: `${data.roomNumber}`},
+            connectionId: {S: connectionId},
+            color: {S: color}
+        }
     }).promise()
 
-    await pushMessage(connectionId, type, {roomNumber: data.roomNumber})
+    await pushMessage(connectionId, type, {
+        roomNumber: data.roomNumber,
+        title: room?.title?.S || '',
+        color: color,
+        userCount: roomUsers.length
+    })
 }
 
 async function exitRoom({type, data, uid}, connectionId) {
@@ -191,6 +204,13 @@ async function pushMessage(
 function handleAwsOutput(err, data) {
     if (err) console.error(err);
     else return data
+}
+
+async function getRoom(roomId) {
+    return ddb.getItem({
+        TableName: 'room',
+        Key: {"id": {N: `${roomId}`}},
+    }).promise().then(result => result.Item);
 }
 
 async function getUser(uid, connectionId) {
