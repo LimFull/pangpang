@@ -19,14 +19,22 @@ const CardContainer = styled.div`
   padding-top: 12px;
   border: solid 1px #d9d9d9;
   background: rgba(189, 187, 187, 0.3);
-  margin-top: 10px;
 `
+const RoomInfo = styled.div`
+  margin: 10px 0 4px 0;
+`
+
+interface RoomInfoType {
+    roomNumber: number,
+    title: string,
+}
 
 export function Room() {
     const param = useParams();
     const session = useSession();
     const [joinSuccess, setJoinSuccess] = useState(false)
     const {users} = useSelector((state: RootState) => state.users)
+    const [roomInfo, setRoomInfo] = useState<RoomInfoType | null>();
     const dispatch = useDispatch();
 
     useEffect(() => {
@@ -34,6 +42,7 @@ export function Room() {
         if (roomNumber) {
             session.api.joinRoom(roomNumber).then((result) => {
                 SnakeMultiplay.color = result.color;
+                setRoomInfo({roomNumber: result.roomNumber, title: result.title})
                 setJoinSuccess(true)
             });
         }
@@ -54,6 +63,9 @@ export function Room() {
         {!joinSuccess && <Backdrop sx={{color: '#fff'}} open={true}><CircularProgress color="inherit"/></Backdrop>}
 
         <Stack sx={{height: '90vh', overflowY: 'scroll'}}>
+            <RoomInfo>
+                {roomInfo ? `${roomInfo.roomNumber} ${roomInfo.title}` : ''}
+            </RoomInfo>
             <CardContainer>
                 {
                     Object.values(users).map((user, i) => {
