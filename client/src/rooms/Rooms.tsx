@@ -1,16 +1,19 @@
 import CreateRoomModal from "./CreateRoomModal";
-import {useCallback, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import {useNavigate} from "react-router";
 import {RoomModel} from "../api";
 import {useSession} from "../session";
 import {useStateWithInitializer} from "../util";
 import {Button, Divider, Grid, List, ListItem, ListItemText, Stack} from "@mui/material";
+import {useDispatch} from "react-redux";
+import {RESET_USERS} from "../snake/reducers/users";
 
 export default function Rooms() {
     const session = useSession();
     const [rooms] = useStateWithInitializer<RoomModel[]>([], () => session.api.getRooms())
     const [showModal, setShowModal] = useState<boolean>(false);
     const navigate = useNavigate();
+    const dispatch = useDispatch();
 
     const navigateRoom = (roomNumber: number) => navigate(`/rooms/${roomNumber}`)
 
@@ -25,6 +28,10 @@ export default function Rooms() {
 
     const handleCancelModal = useCallback(() => {
         setShowModal(false);
+    }, [])
+
+    useEffect(() => {
+        dispatch({type: RESET_USERS})
     }, [])
 
     return <Stack>

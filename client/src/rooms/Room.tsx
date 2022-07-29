@@ -5,6 +5,10 @@ import UserCard from "./UserCard";
 import {useParams} from "react-router";
 import {useSession} from "../session";
 import {useEffect, useState} from "react";
+import {useDispatch, useSelector} from "react-redux";
+import {RootState} from "../store";
+import {ADD_USER, User} from "../snake/reducers/users";
+import SnakeMultiplay from "../snake/multiplay/SnakeMultiplay";
 
 const CardContainer = styled.div`
   display: flex;
@@ -22,22 +26,43 @@ export function Room() {
     const param = useParams();
     const session = useSession();
     const [joinSuccess, setJoinSuccess] = useState(false)
+    const {users} = useSelector((state: RootState) => state.users)
+    const dispatch = useDispatch();
 
     useEffect(() => {
         const roomNumber = parseInt(param.roomNumber || '')
         if (roomNumber) {
-            session.api.joinRoom(roomNumber).then(() => setJoinSuccess(true));
+            session.api.joinRoom(roomNumber).then((result) => {
+                SnakeMultiplay.color = result.color;
+                setJoinSuccess(true)
+            });
         }
     }, [param.roomNumber])
 
+    useEffect(() => {
+        if (!joinSuccess) return;
+        dispatch({
+            type: ADD_USER, payload: {
+                id: session.user.id, user: {
+                    name: session.user.name, color: SnakeMultiplay.color
+                }
+            }
+        })
+    }, [joinSuccess]);
+
     return <Container>
         {!joinSuccess && <Backdrop sx={{color: '#fff'}} open={true}><CircularProgress color="inherit"/></Backdrop>}
+
         <Stack sx={{height: '90vh', overflowY: 'scroll'}}>
             <CardContainer>
-                <UserCard color={'blue'} name={'default_name'}/>
-                <UserCard color={'blue'} name={'default_name'}/>
-                <UserCard color={'blue'} name={'default_name'}/>
-                <UserCard color={'blue'} name={'default_name'}/>
+                {
+                    Object.values(users).map((user, i) => {
+                        console.log("user", user)
+                        const cardUser = user as User;
+                        console.log("cardUser", cardUser)
+                        return <UserCard key={i} color={cardUser.color} name={cardUser.name}/>
+                    })
+                }
             </CardContainer>
             <Box sx={{width: '100%', height: '30vh', alignSelf: 'flex-end'}}>
                 <Chat/>

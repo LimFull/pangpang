@@ -1,7 +1,6 @@
 import React, {useEffect, useRef, useState} from "react";
 import {useSession} from "../session";
 import {List, ListItem, Stack, TextField} from "@mui/material";
-import {ChatMessage} from "../api";
 import _ from 'lodash'
 import {ChatRtcData, ConnectionStateData} from "../snake/type/rtc";
 

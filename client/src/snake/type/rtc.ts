@@ -10,5 +10,6 @@ export interface ChatRtcData {
 
 export interface ConnectionStateData {
     name?: string;
+    color?: string;
     connectionState: 'OPEN' | 'CANCEL';
 }

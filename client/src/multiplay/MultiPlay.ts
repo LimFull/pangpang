@@ -42,16 +42,12 @@ interface rtcObject {
     candidate?: RTCIceCandidate
 }
 
-interface connection extends rtcObject {
-    name?: string,
-}
-
 // `${userId}::${userId}`
 export type connectionKey = `${string}::${string}`
 
 interface connections {
     // 각각의 커넥션마다 고유의 키를 가짐
-    [key: connectionKey]: connection
+    [key: connectionKey]: rtcObject
 }
 
 export interface MultiPlayInterface {

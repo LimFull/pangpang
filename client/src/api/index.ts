@@ -36,6 +36,9 @@ export interface CreateRoomResult {
 
 export interface JoinRoomResult {
     roomNumber: number;
+    title: string;
+    color: string;
+    userCount: number;
 }
 
 export interface ChatMessage {
